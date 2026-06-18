@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone        String?
+  passwordHash String
+  balance      Float         @default(0)
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+  gamePlays    GamePlay[]
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  type       String
+  amount     Float
+  status     String   @default("pending")
+  pixId      String?
+  pixCode    String?
+  createdAt  DateTime @default(now())
+}
+
+model GamePlay {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  gameId    String
+  betAmount Float
+  prize     Float    @default(0)
+  won       Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// Banners do carrossel da home — configuráveis no painel admin
+model Banner {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  link      String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// Configuração de exibição das raspadinhas — editáveis no admin.
+// name/price/description são overrides opcionais (null = usa o valor padrão do código).
+model GameSetting {
+  gameId      String  @id
+  imageUrl    String  @default("")
+  category    String  @default("PRODUTOS")
+  name        String?
+  price       Float?
+  description String?
+}
+
+// Configurações gerais do site (chave/valor) — editáveis no admin
+model Setting {
+  key   String @id
+  value String
+}
+
+// "Últimos Ganhadores" — entradas fixas/configuráveis no admin (não mudam no F5)
+model Winner {
+  id         String  @id @default(cuid())
+  imageUrl   String  @default("") // foto do prêmio (configurável)
+  name       String              // nome mascarado, ex: ***s***...
+  value      Float               // valor do prêmio
+  badge      String  @default("PIX") // PIX | PREMIO
+  minutesAgo Int     @default(5)  // "há X min" (fixo)
+  sortOrder  Int     @default(0)
+  active     Boolean @default(true)
+}
