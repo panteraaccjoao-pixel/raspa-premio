@@ -13,10 +13,10 @@ const FILTROS: { key: Filtro; label: string; icon: string }[] = [
   { key: "ACIMA50", label: "Acima de R$ 50", icon: "bi-gem" },
 ];
 
-export default function JogarClient({ games }: { games: RaspadinhaData[] }) {
+export default function JogarClient({ games, winnersTotal }: { games: RaspadinhaData[]; winnersTotal?: number }) {
   const [filtro, setFiltro] = useState<Filtro>("TODAS");
 
-  const totalPremios = games.reduce((s, g) => s + g.maxPrize, 0);
+  const totalPremios = winnersTotal ?? games.reduce((s, g) => s + g.maxPrize, 0);
 
   const filtered = games.filter((g) => {
     if (filtro === "ATE10") return g.price <= 10;

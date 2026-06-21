@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getGame, rollPrize } from "@/lib/games";
+import { rollPrize } from "@/lib/games";
 import { getMergedGame } from "@/lib/site-data";
 
 export async function POST(req: NextRequest) {
@@ -9,12 +9,11 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
   const { gameId } = await req.json();
-  const game = getGame(gameId);
-  if (!game) return NextResponse.json({ error: "Jogo inválido" }, { status: 400 });
-
-  // Preço pode ter sido alterado no admin — cobra o valor configurado
   const merged = await getMergedGame(gameId);
-  const price = merged?.price ?? game.price;
+  if (!merged) return NextResponse.json({ error: "Jogo inválido" }, { status: 400 });
+
+  const game = merged;
+  const price = merged.price;
 
   const user = await prisma.user.findUnique({ where: { id: session.id } });
   if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
@@ -23,7 +22,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Saldo insuficiente" }, { status: 400 });
   }
 
-  const prize = rollPrize(game);
+  // 10% chance de ganhar, máximo R$50
+  const winChance = Math.random() < 0.10;
+  const smallPrizes = [2, 5, 5, 10, 10, 10, 20, 20, 50];
+  const prize = winChance ? smallPrizes[Math.floor(Math.random() * smallPrizes.length)] : 0;
   const won = prize > 0;
   const net = prize - price;
 

@@ -30,7 +30,7 @@ export default function WinnersBar({
         .winners-total { text-align: right; }
         .winners-total .label { color: #9ca3af; font-size: 0.95rem; }
         .winners-total .value {
-          color: #22c55e; font-size: 1.7rem; font-weight: 900;
+          color: #ef4444; font-size: 1.7rem; font-weight: 900;
           line-height: 1.1;
         }
 
@@ -63,12 +63,18 @@ export default function WinnersBar({
         .winner-avatar {
           width: 46px; height: 46px; border-radius: 50%;
           flex-shrink: 0; overflow: hidden;
-          border: 2px solid rgba(34,197,94,0.5);
+          border: 3px solid #ef4444;
           display: flex; align-items: center; justify-content: center;
-          background: linear-gradient(135deg, #16a34a, #15803d);
+          background: linear-gradient(135deg, #ef4444, #dc2626);
           color: #fff; font-size: 1.2rem;
         }
-        .winner-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .winner-avatar.has-img {
+          background: transparent;
+        }
+        .winner-avatar.png-bg {
+          background: #5c0000;
+        }
+        .winner-avatar img { width: 100%; height: 100%; object-fit: contain; }
         .winner-info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
         .winner-name { color: #fff; font-weight: 700; font-size: 0.9rem; }
         .winner-time { color: #9ca3af; font-size: 0.8rem; }
@@ -76,13 +82,13 @@ export default function WinnersBar({
           margin-left: auto; text-align: right;
           display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem;
         }
-        .winner-value { color: #22c55e; font-weight: 800; font-size: 1rem; white-space: nowrap; }
+        .winner-value { color: #ef4444; font-weight: 800; font-size: 1rem; white-space: nowrap; }
         .winner-badge {
           font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em;
           padding: 0.2rem 0.6rem; border-radius: 50px; text-transform: uppercase;
           color: #fff;
         }
-        .winner-badge.pix { background: #22c55e; }
+        .winner-badge.pix { background: #ef4444; }
         .winner-badge.premio { background: linear-gradient(135deg, #f59e0b, #d97706); }
       `}</style>
 
@@ -92,7 +98,7 @@ export default function WinnersBar({
           <div className="winners-total">
             <div className="label">Prêmios Distribuídos</div>
             <div className="value">
-              R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              R$ {Number(total).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
             </div>
           </div>
         </div>
@@ -101,7 +107,7 @@ export default function WinnersBar({
           <div className="winners-track">
             {[...winners, ...winners].map((w, i) => (
               <div className="winner-card" key={`${w.id}-${i}`}>
-                <div className="winner-avatar">
+                <div className={`winner-avatar${w.imageUrl ? " has-img" : ""}${w.imageUrl?.startsWith("data:image/png") || w.imageUrl?.toLowerCase().includes(".png") ? " png-bg" : ""}`}>
                   {w.imageUrl ? (
                     <img src={w.imageUrl} alt="Prêmio" />
                   ) : (

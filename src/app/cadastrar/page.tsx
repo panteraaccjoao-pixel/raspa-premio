@@ -13,7 +13,7 @@ const STEPS = [
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -489,6 +489,25 @@ export default function RegisterPage() {
                     placeholder="seu@email.com"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <div className="input-icon"><i className="bi bi-telephone" /></div>
+                  <input
+                    type="text"
+                    required
+                    inputMode="numeric"
+                    className="form-input"
+                    placeholder="(00) 00000-0000"
+                    value={form.phone}
+                    onChange={(e) => {
+                      const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      const masked = d
+                        .replace(/(\d{2})(\d)/, "($1) $2")
+                        .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+                      setForm({ ...form, phone: masked });
+                    }}
                   />
                 </div>
 

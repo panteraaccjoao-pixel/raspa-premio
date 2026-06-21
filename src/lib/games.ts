@@ -8,6 +8,7 @@ export interface Game {
   color: string;
   emoji: string;
   description: string;
+  imageUrl?: string;
   /** Categoria padrão (editável no admin via GameSetting) */
   category: GameCategory;
   prizes: { amount: number; probability: number }[];

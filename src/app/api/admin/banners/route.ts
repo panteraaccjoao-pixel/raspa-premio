@@ -12,12 +12,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   if (!(await isAdmin())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const { imageUrl, link, sortOrder, active } = await req.json();
+  const { imageUrl, link, objectFit, sortOrder, active } = await req.json();
   if (!imageUrl) return NextResponse.json({ error: "imageUrl obrigatório" }, { status: 400 });
-  const banner = await prisma.banner.create({
+  const banner = await (prisma.banner as any).create({
     data: {
       imageUrl,
       link: link || null,
+      objectFit: objectFit || "cover",
       sortOrder: Number(sortOrder) || 0,
       active: active ?? true,
     },

@@ -5,6 +5,7 @@ export interface BannerData {
   id: string;
   imageUrl: string;
   link: string | null;
+  objectFit: string;
 }
 
 export interface RaspadinhaData {
@@ -59,7 +60,7 @@ export async function getBanners(): Promise<BannerData[]> {
     where: { active: true },
     orderBy: { sortOrder: "asc" },
   });
-  return banners.map((b) => ({ id: b.id, imageUrl: b.imageUrl, link: b.link }));
+  return banners.map((b) => ({ id: b.id, imageUrl: b.imageUrl, link: b.link, objectFit: (b as any).objectFit ?? "cover" }));
 }
 
 export interface WinnerData {
@@ -145,36 +146,61 @@ export async function setWinnersTotal(value: number): Promise<void> {
  * Faz seed automático das settings padrão na primeira execução.
  */
 export async function getRaspadinhas(): Promise<RaspadinhaData[]> {
-  let settings = await prisma.gameSetting.findMany();
+  let settings = await (prisma.gameSetting as any).findMany();
 
   // Seed automático na primeira vez
   if (settings.length === 0) {
-    await prisma.gameSetting.createMany({
+    await (prisma.gameSetting as any).createMany({
       data: GAMES.map((g) => ({
         gameId: g.id,
         imageUrl: "",
         category: g.category,
+        maxPrize: g.maxPrize,
+        active: true,
       })),
     });
-    settings = await prisma.gameSetting.findMany();
+    settings = await (prisma.gameSetting as any).findMany();
   }
 
-  const byId = new Map(settings.map((s) => [s.gameId, s]));
+  const byId = new Map(settings.map((s: any) => [s.gameId, s]));
+  const result: RaspadinhaData[] = [];
 
-  return GAMES.map((g) => {
-    const s = byId.get(g.id);
-    return {
+  // Jogos hardcoded (filtrados por active)
+  for (const g of GAMES) {
+    const s = byId.get(g.id) as any;
+    if (s && !s.active) continue;
+    result.push({
       id: g.id,
       name: s?.name ?? g.name,
       price: s?.price ?? g.price,
-      maxPrize: g.maxPrize,
+      maxPrize: s?.maxPrize ?? g.maxPrize,
       description: s?.description ?? g.description,
       color: g.color,
       emoji: g.emoji,
       imageUrl: s?.imageUrl ?? "",
       category: (s?.category as GameCategory) ?? g.category,
-    };
-  });
+    });
+  }
+
+  // Jogos customizados (criados no admin, não existem em GAMES)
+  const hardcodedIds = new Set(GAMES.map((g) => g.id));
+  for (const s of settings as any[]) {
+    if (hardcodedIds.has(s.gameId)) continue;
+    if (!s.active) continue;
+    result.push({
+      id: s.gameId,
+      name: s.name ?? "Raspadinha",
+      price: s.price ?? 5,
+      maxPrize: s.maxPrize ?? 1000,
+      description: s.description ?? "",
+      color: "from-red-500 to-red-700",
+      emoji: "🎰",
+      imageUrl: s.imageUrl ?? "",
+      category: (s.category as GameCategory) ?? "DINHEIRO",
+    });
+  }
+
+  return result;
 }
 
 /**
@@ -182,15 +208,39 @@ export async function getRaspadinhas(): Promise<RaspadinhaData[]> {
  * Usado na página de jogo e na cobrança do play.
  */
 export async function getMergedGame(gameId: string) {
+  const s = await (prisma.gameSetting as any).findUnique({ where: { gameId } });
   const g = GAMES.find((x) => x.id === gameId);
-  if (!g) return null;
-  const s = await prisma.gameSetting.findUnique({ where: { gameId } });
+
+  if (!g && !s) return null;
+  if (!g && s) {
+    // Jogo customizado criado no admin
+    return {
+      id: s.gameId,
+      name: s.name ?? "Raspadinha",
+      price: s.price ?? 5,
+      maxPrize: s.maxPrize ?? 1000,
+      description: s.description ?? "",
+      color: "from-red-500 to-red-700",
+      emoji: "🎰",
+      imageUrl: s.imageUrl ?? "",
+      category: (s.category as GameCategory) ?? "DINHEIRO",
+      prizes: [
+        { amount: s.maxPrize ?? 1000, probability: 0.001 },
+        { amount: (s.maxPrize ?? 1000) * 0.2, probability: 0.005 },
+        { amount: (s.maxPrize ?? 1000) * 0.05, probability: 0.02 },
+        { amount: (s.price ?? 5) * 3, probability: 0.05 },
+        { amount: s.price ?? 5, probability: 0.08 },
+        { amount: 0, probability: 0.844 },
+      ],
+    };
+  }
   return {
-    ...g,
-    name: s?.name ?? g.name,
-    price: s?.price ?? g.price,
-    description: s?.description ?? g.description,
+    ...g!,
+    name: s?.name ?? g!.name,
+    price: s?.price ?? g!.price,
+    maxPrize: s?.maxPrize ?? g!.maxPrize,
+    description: s?.description ?? g!.description,
     imageUrl: s?.imageUrl ?? "",
-    category: (s?.category as GameCategory) ?? g.category,
+    category: (s?.category as GameCategory) ?? g!.category,
   };
 }

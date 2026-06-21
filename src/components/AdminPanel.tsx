@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 type Tab = "dashboard" | "usuarios" | "recargas" | "jogadas" | "banners" | "raspadinhas" | "ganhadores";
 
-interface Banner { id: string; imageUrl: string; link: string | null; sortOrder: number; active: boolean; }
+interface Banner { id: string; imageUrl: string; link: string | null; objectFit: string; sortOrder: number; active: boolean; }
 interface GameRow { id: string; name: string; price: number; maxPrize: number; description: string; imageUrl: string; category: string; }
 interface Winner { id: string; imageUrl: string; name: string; value: number; badge: string; minutesAgo: number; sortOrder: number; active: boolean; }
 interface UserRow { id: string; name: string; email: string; phone: string | null; balance: number; createdAt: string; }
@@ -26,7 +26,7 @@ const BRL = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDi
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 // Converte um arquivo de imagem em data-URI, redimensionando para não pesar no banco
-function fileToDataUrl(file: File, maxW = 1920): Promise<string> {
+function fileToDataUrl(file: File, maxW = 1920, removeDarkBg = false, asPng = false): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -43,7 +43,19 @@ function fileToDataUrl(file: File, maxW = 1920): Promise<string> {
         const ctx = canvas.getContext("2d");
         if (!ctx) return reject(new Error("canvas"));
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL("image/jpeg", 0.97));
+        if (removeDarkBg) {
+          const data = ctx.getImageData(0, 0, w, h);
+          for (let i = 0; i < data.data.length; i += 4) {
+            const r = data.data[i], g = data.data[i+1], b = data.data[i+2];
+            if (r < 60 && g < 60 && b < 60) data.data[i+3] = 0;
+          }
+          ctx.putImageData(data, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        } else if (asPng) {
+          resolve(canvas.toDataURL("image/png"));
+        } else {
+          resolve(canvas.toDataURL("image/jpeg", 0.97));
+        }
       };
       img.src = reader.result as string;
     };
@@ -51,7 +63,7 @@ function fileToDataUrl(file: File, maxW = 1920): Promise<string> {
   });
 }
 
-function UploadBtn({ onPick }: { onPick: (dataUrl: string) => void }) {
+function UploadBtn({ onPick, removeDarkBg, asPng }: { onPick: (dataUrl: string) => void; removeDarkBg?: boolean; asPng?: boolean }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   return (
@@ -68,13 +80,64 @@ function UploadBtn({ onPick }: { onPick: (dataUrl: string) => void }) {
           const f = e.target.files?.[0];
           if (f) {
             setBusy(true);
-            try { onPick(await fileToDataUrl(f)); } catch {}
+            try { onPick(await fileToDataUrl(f, 1920, removeDarkBg, asPng)); } catch {}
             setBusy(false);
           }
           e.target.value = "";
         }}
       />
     </>
+  );
+}
+
+const FIT_OPTIONS = [
+  { value: "cover",   label: "Preencher",  icon: "bi-fullscreen" },
+  { value: "contain", label: "Mostrar tudo", icon: "bi-aspect-ratio" },
+  { value: "fill",    label: "Esticar",    icon: "bi-arrows-fullscreen" },
+];
+
+function FitPicker({ imageUrl, value, onChange }: { imageUrl: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+      {FIT_OPTIONS.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              flex: "1 1 140px",
+              border: active ? "2px solid #ef4444" : "2px solid rgba(255,255,255,0.1)",
+              borderRadius: 12,
+              background: active ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.03)",
+              cursor: "pointer",
+              padding: "0.5rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "0.4rem",
+              transition: "all 0.2s",
+            }}
+          >
+            <div style={{
+              width: "100%", height: 80, borderRadius: 8, overflow: "hidden",
+              background: "#111",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {imageUrl ? (
+                <img src={imageUrl} alt={opt.label} style={{ width: "100%", height: "100%", objectFit: opt.value as any }} />
+              ) : (
+                <i className={`bi ${opt.icon}`} style={{ fontSize: "1.8rem", color: "#555" }} />
+              )}
+            </div>
+            <span style={{ fontSize: "0.78rem", fontWeight: 700, color: active ? "#ef4444" : "#9ca3af" }}>
+              {opt.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -459,7 +522,7 @@ function JogadasTab() {
 /* ---------------- Banners ---------------- */
 function BannersTab() {
   const [items, setItems] = useState<Banner[]>([]);
-  const [novo, setNovo] = useState({ imageUrl: "", link: "", sortOrder: 0 });
+  const [novo, setNovo] = useState({ imageUrl: "", link: "", objectFit: "cover", sortOrder: 0 });
 
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/banners");
@@ -471,7 +534,7 @@ function BannersTab() {
   async function add() {
     if (!novo.imageUrl) return;
     await fetch("/api/admin/banners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
-    setNovo({ imageUrl: "", link: "", sortOrder: 0 });
+    setNovo({ imageUrl: "", link: "", objectFit: "cover", sortOrder: 0 });
     load();
   }
   async function save(b: Banner) {
@@ -494,6 +557,10 @@ function BannersTab() {
           <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
             <UploadBtn onPick={(d) => setNovo({ ...novo, imageUrl: d })} />
           </div>
+        </div>
+        <div className="adm-field">
+          <label>Enquadramento da imagem</label>
+          <FitPicker imageUrl={novo.imageUrl} value={novo.objectFit} onChange={(v) => setNovo({ ...novo, objectFit: v })} />
         </div>
         <div className="adm-grid2">
           <div className="adm-field">
@@ -540,6 +607,10 @@ function BannerRow({ banner, onSave, onDelete }: { banner: Banner; onSave: (b: B
           <UploadBtn onPick={(d) => setB({ ...b, imageUrl: d })} />
         </div>
       </div>
+      <div className="adm-field">
+        <label>Enquadramento da imagem</label>
+        <FitPicker imageUrl={b.imageUrl} value={b.objectFit ?? "cover"} onChange={(v) => setB({ ...b, objectFit: v })} />
+      </div>
       <div className="adm-grid2">
         <div className="adm-field">
           <label>Link</label>
@@ -559,8 +630,11 @@ function BannerRow({ banner, onSave, onDelete }: { banner: Banner; onSave: (b: B
 }
 
 /* ---------------- Raspadinhas ---------------- */
+const NOVO_GAME_DEFAULT = { name: "", price: 5, maxPrize: 1000, description: "", category: "DINHEIRO", imageUrl: "" };
+
 function RaspadinhasTab() {
   const [items, setItems] = useState<GameRow[]>([]);
+  const [novo, setNovo] = useState({ ...NOVO_GAME_DEFAULT });
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/games");
     const d = await r.json();
@@ -571,15 +645,160 @@ function RaspadinhasTab() {
   async function save(g: GameRow) {
     await fetch(`/api/admin/games/${g.id}`, {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageUrl: g.imageUrl, category: g.category, name: g.name, price: g.price, description: g.description }),
+      body: JSON.stringify({ imageUrl: g.imageUrl, category: g.category, name: g.name, price: g.price, maxPrize: g.maxPrize, description: g.description }),
     });
     load();
   }
 
-  return <div>{items.map((g) => <GameRowEdit key={g.id} game={g} onSave={save} />)}</div>;
+  async function del(id: string) {
+    if (!confirm("Remover esta raspadinha?")) return;
+    await fetch(`/api/admin/games/${id}`, { method: "DELETE" });
+    load();
+  }
+
+  async function add() {
+    if (!novo.name) return;
+    await fetch("/api/admin/games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
+    setNovo({ ...NOVO_GAME_DEFAULT });
+    load();
+  }
+
+  return (
+    <div>
+      <div className="adm-card new">
+        <div className="adm-cardtitle">Nova Raspadinha</div>
+        <div className="adm-grid2">
+          <div className="adm-field">
+            <label>Título</label>
+            <input className="adm-input" placeholder="Ex: Raspa Milionário" value={novo.name} onChange={(e) => setNovo({ ...novo, name: e.target.value })} />
+          </div>
+          <div className="adm-field">
+            <label>Imagem</label>
+            <input className="adm-input" placeholder="https://... ou envie abaixo" value={novo.imageUrl} onChange={(e) => setNovo({ ...novo, imageUrl: e.target.value })} />
+            <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
+              <UploadBtn onPick={(d) => setNovo({ ...novo, imageUrl: d })} />
+            </div>
+          </div>
+        </div>
+        <div className="adm-grid2">
+          <div className="adm-field">
+            <label>Valor (R$)</label>
+            <input className="adm-input" type="number" step="0.01" value={novo.price} onChange={(e) => setNovo({ ...novo, price: Number(e.target.value) })} />
+          </div>
+          <div className="adm-field">
+            <label>Prêmio máx. (R$)</label>
+            <input className="adm-input" type="number" value={novo.maxPrize} onChange={(e) => setNovo({ ...novo, maxPrize: Number(e.target.value) })} />
+          </div>
+        </div>
+        <div className="adm-grid2">
+          <div className="adm-field">
+            <label>Categoria</label>
+            <select className="adm-select" value={novo.category} onChange={(e) => setNovo({ ...novo, category: e.target.value })}>
+              <option value="DINHEIRO">DINHEIRO</option>
+              <option value="PRODUTOS">PRODUTOS</option>
+            </select>
+          </div>
+          <div className="adm-field">
+            <label>Descrição</label>
+            <input className="adm-input" placeholder="Descrição breve" value={novo.description} onChange={(e) => setNovo({ ...novo, description: e.target.value })} />
+          </div>
+        </div>
+        <div className="adm-actions">
+          {novo.imageUrl && <img className="adm-preview" src={novo.imageUrl} alt="" />}
+          <button className="adm-btn" onClick={add}><i className="bi bi-plus-lg" /> Adicionar raspadinha</button>
+        </div>
+      </div>
+
+      {items.map((g) => <GameRowEdit key={g.id} game={g} onSave={save} onDelete={del} />)}
+    </div>
+  );
 }
 
-function GameRowEdit({ game, onSave }: { game: GameRow; onSave: (g: GameRow) => Promise<void>; }) {
+interface GamePrize { id: string; label: string; value: number; imageUrl: string; sortOrder: number; active: boolean; }
+
+function PrizesSection({ gameId }: { gameId: string }) {
+  const [prizes, setPrizes] = useState<GamePrize[]>([]);
+  const [open, setOpen] = useState(false);
+  const [novo, setNovo] = useState({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
+
+  const load = useCallback(async () => {
+    const r = await fetch(`/api/admin/prizes?gameId=${gameId}`);
+    const d = await r.json();
+    setPrizes(d.prizes || []);
+  }, [gameId]);
+
+  useEffect(() => { if (open) load(); }, [open, load]);
+
+  async function add() {
+    if (!novo.label) return;
+    await fetch("/api/admin/prizes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...novo, gameId }) });
+    setNovo({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
+    load();
+  }
+  async function del(id: string) {
+    await fetch(`/api/admin/prizes/${id}`, { method: "DELETE" });
+    load();
+  }
+  async function update(p: GamePrize) {
+    await fetch(`/api/admin/prizes/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
+    load();
+  }
+
+  return (
+    <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: "1rem" }}>
+      <button className="adm-btn" style={{ background: "rgba(22,199,91,.1)", color: "#16C75B", border: "1px solid rgba(22,199,91,.2)" }} onClick={() => setOpen(o => !o)}>
+        <i className="bi bi-gift" /> {open ? "Fechar Prêmios" : `Gerenciar Prêmios (${prizes.length || "?"})`}
+      </button>
+      {open && (
+        <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: ".75rem" }}>
+          {/* Novo prêmio */}
+          <div style={{ background: "rgba(22,199,91,.05)", border: "1px solid rgba(22,199,91,.12)", borderRadius: 10, padding: ".75rem" }}>
+            <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo Prêmio</div>
+            <div className="adm-grid2">
+              <div className="adm-field"><label>Nome do prêmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
+              <div className="adm-field"><label>Valor (R$)</label><input className="adm-input" type="number" value={novo.value} onChange={e => setNovo({ ...novo, value: Number(e.target.value) })} /></div>
+            </div>
+            <div className="adm-field" style={{ marginBottom: ".5rem" }}>
+              <label>Foto do prêmio</label>
+              <input className="adm-input" placeholder="https://... ou envie uma imagem" value={novo.imageUrl} onChange={e => setNovo({ ...novo, imageUrl: e.target.value })} />
+              <div style={{ marginTop: ".4rem" }}><UploadBtn onPick={d => setNovo({ ...novo, imageUrl: d })} asPng /></div>
+            </div>
+            {novo.imageUrl && <img src={novo.imageUrl} alt="" style={{ height: 60, borderRadius: 6, marginBottom: ".5rem", objectFit: "cover" }} />}
+            <button className="adm-btn" onClick={add}><i className="bi bi-plus-lg" /> Adicionar</button>
+          </div>
+          {/* Lista */}
+          {prizes.map(p => <PrizeRowEdit key={p.id} prize={p} onSave={update} onDelete={del} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PrizeRowEdit({ prize, onSave, onDelete }: { prize: GamePrize; onSave: (p: GamePrize) => void; onDelete: (id: string) => void; }) {
+  const [p, setP] = useState(prize);
+  useEffect(() => setP(prize), [prize]);
+  return (
+    <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, padding: ".65rem .75rem", display: "flex", flexDirection: "column", gap: ".5rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
+        {p.imageUrl && <img src={p.imageUrl} alt="" style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />}
+        <div style={{ flex: 1 }}>
+          <input className="adm-input" value={p.label} onChange={e => setP({ ...p, label: e.target.value })} style={{ marginBottom: ".3rem" }} />
+          <input className="adm-input" type="number" value={p.value} onChange={e => setP({ ...p, value: Number(e.target.value) })} placeholder="Valor R$" />
+        </div>
+      </div>
+      <div className="adm-field">
+        <input className="adm-input" placeholder="URL da foto" value={p.imageUrl} onChange={e => setP({ ...p, imageUrl: e.target.value })} />
+        <div style={{ marginTop: ".3rem" }}><UploadBtn onPick={d => setP({ ...p, imageUrl: d })} asPng /></div>
+      </div>
+      <div className="adm-actions">
+        <button className="adm-btn" onClick={() => onSave(p)}><i className="bi bi-check-lg" /> Salvar</button>
+        <button className="adm-btn danger" onClick={() => onDelete(p.id)}><i className="bi bi-trash" /> Remover</button>
+      </div>
+    </div>
+  );
+}
+
+function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: GameRow) => Promise<void>; onDelete: (id: string) => Promise<void>; }) {
   const [g, setG] = useState(game);
   const [saved, setSaved] = useState(false);
   useEffect(() => setG(game), [game]);
@@ -601,7 +820,7 @@ function GameRowEdit({ game, onSave }: { game: GameRow; onSave: (g: GameRow) => 
           <label>URL da imagem</label>
           <input className="adm-input" placeholder="https://... ou envie abaixo" value={g.imageUrl} onChange={(e) => setG({ ...g, imageUrl: e.target.value })} />
           <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
-            <UploadBtn onPick={(d) => setG({ ...g, imageUrl: d })} />
+            <UploadBtn onPick={(d) => setG({ ...g, imageUrl: d })} removeDarkBg />
           </div>
         </div>
       </div>
@@ -611,23 +830,33 @@ function GameRowEdit({ game, onSave }: { game: GameRow; onSave: (g: GameRow) => 
           <input className="adm-input" type="number" step="0.01" value={g.price} onChange={(e) => setG({ ...g, price: Number(e.target.value) })} />
         </div>
         <div className="adm-field">
+          <label>Prêmio máx. (R$)</label>
+          <input className="adm-input" type="number" value={g.maxPrize} onChange={(e) => setG({ ...g, maxPrize: Number(e.target.value) })} />
+        </div>
+      </div>
+      <div className="adm-grid2">
+        <div className="adm-field">
           <label>Categoria</label>
           <select className="adm-select" value={g.category} onChange={(e) => setG({ ...g, category: e.target.value })}>
             <option value="DINHEIRO">DINHEIRO</option>
             <option value="PRODUTOS">PRODUTOS</option>
           </select>
         </div>
-      </div>
-      <div className="adm-field">
-        <label>Descrição</label>
-        <textarea className="adm-textarea" value={g.description} onChange={(e) => setG({ ...g, description: e.target.value })} />
+        <div className="adm-field">
+          <label>Descrição</label>
+          <textarea className="adm-textarea" value={g.description} onChange={(e) => setG({ ...g, description: e.target.value })} />
+        </div>
       </div>
       <div className="adm-actions">
         <button className="adm-btn" onClick={async () => { await onSave(g); setSaved(true); setTimeout(() => setSaved(false), 1500); }}>
           <i className="bi bi-check-lg" /> Salvar
         </button>
+        <button className="adm-btn danger" onClick={() => onDelete(g.id)}>
+          <i className="bi bi-trash" /> Remover
+        </button>
         {saved && <span className="adm-saved"><i className="bi bi-check-circle-fill" /> Salvo!</span>}
       </div>
+      <PrizesSection gameId={g.id} />
     </div>
   );
 }
@@ -669,7 +898,10 @@ function GanhadoresTab() {
         <div className="adm-grid2">
           <div className="adm-field">
             <label>URL da foto do prêmio</label>
-            <input className="adm-input" placeholder="https://..." value={novo.imageUrl} onChange={(e) => setNovo({ ...novo, imageUrl: e.target.value })} />
+            <input className="adm-input" placeholder="https://... ou envie abaixo" value={novo.imageUrl} onChange={(e) => setNovo({ ...novo, imageUrl: e.target.value })} />
+            <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
+              <UploadBtn onPick={(d) => setNovo({ ...novo, imageUrl: d })} removeDarkBg />
+            </div>
           </div>
           <div className="adm-field">
             <label>Nome (mascarado)</label>
@@ -709,21 +941,22 @@ function GanhadoresTab() {
 }
 
 function PremiosDistribuidos() {
-  const [value, setValue] = useState<number>(0);
+  const [value, setValue] = useState<string>("");
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/settings").then((r) => r.json()).then((d) => {
-      setValue(d.winnersTotal ?? 0);
+      setValue(String(d.winnersTotal ?? 0));
       setLoaded(true);
     });
   }, []);
 
   async function save() {
+    const num = parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
     await fetch("/api/admin/settings", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ winnersTotal: value }),
+      body: JSON.stringify({ winnersTotal: num }),
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
@@ -737,10 +970,11 @@ function PremiosDistribuidos() {
           <label>Valor (R$)</label>
           <input
             className="adm-input"
-            type="number"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
+            placeholder="Ex: 35273,50"
             value={loaded ? value : ""}
-            onChange={(e) => setValue(Number(e.target.value))}
+            onChange={(e) => setValue(e.target.value)}
           />
         </div>
         <div className="adm-actions" style={{ alignItems: "flex-end" }}>
@@ -767,6 +1001,9 @@ function WinnerRow({ winner, onSave, onDelete }: { winner: Winner; onSave: (w: W
         <div className="adm-field">
           <label>URL da foto</label>
           <input className="adm-input" value={w.imageUrl} onChange={(e) => setW({ ...w, imageUrl: e.target.value })} />
+          <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
+            <UploadBtn onPick={(d) => setW({ ...w, imageUrl: d })} removeDarkBg />
+          </div>
         </div>
         <div className="adm-field">
           <label>Nome</label>

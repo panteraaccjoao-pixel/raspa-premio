@@ -2,11 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "raspa-site",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3000,
-      "autoPort": true
+      "name": "raspa-site-dev",
+      "runtimeExecutable": "D:/raspa-site/start-dev.bat",
+      "runtimeArgs": [],
+      "port": 3000
     }
   ]
 }

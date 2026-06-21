@@ -4,9 +4,9 @@ import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const { name, email, password } = await req.json();
+  const { name, email, phone, password } = await req.json();
 
-  if (!name || !email || !password) {
+  if (!name || !email || !phone || !password) {
     return NextResponse.json({ error: "Preencha todos os campos" }, { status: 400 });
   }
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash },
+    data: { name, email, phone, passwordHash },
   });
 
   const token = signToken({ id: user.id, email: user.email, name: user.name });

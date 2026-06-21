@@ -46,6 +46,7 @@ model Banner {
   id        String   @id @default(cuid())
   imageUrl  String
   link      String?
+  objectFit String   @default("cover")
   sortOrder Int      @default(0)
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -60,6 +61,19 @@ model GameSetting {
   name        String?
   price       Float?
   description String?
+  maxPrize    Float   @default(1000)
+  active      Boolean @default(true)
+}
+
+// Prêmios configuráveis por jogo — exibidos na vitrine da raspadinha
+model GamePrize {
+  id        String  @id @default(cuid())
+  gameId    String
+  label     String
+  value     Float   @default(0)
+  imageUrl  String  @default("")
+  sortOrder Int     @default(0)
+  active    Boolean @default(true)
 }
 
 // Configurações gerais do site (chave/valor) — editáveis no admin

@@ -201,13 +201,14 @@ export default function Header() {
           color: #ef4444; font-weight: 600; text-decoration: none;
         }
         .btn-deposit {
-          background: #ef4444; color: white; border: none;
+          background: #16C75B; color: white; border: none;
           padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600;
           display: flex; align-items: center; gap: 0.5rem;
           cursor: pointer; transition: all 0.3s ease;
           font-family: inherit; font-size: 1rem; text-decoration: none;
+          box-shadow: 0 4px 14px rgba(22,163,74,0.35);
         }
-        .btn-deposit:hover { background: #dc2626; transform: translateY(-1px); }
+        .btn-deposit:hover { background: #12a84d; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,163,74,0.5); }
         .user-dropdown { position: relative; }
         .user-btn {
           background: rgba(255,255,255,0.05);
@@ -368,13 +369,29 @@ export default function Header() {
                         <i className={`bi bi-chevron-down dropdown-arrow${dropdownOpen ? " open" : ""}`} />
                       </button>
                       <div className={`dropdown-menu${dropdownOpen ? " open" : ""}`}>
+                        <Link href="/jogar" className="dropdown-item">
+                          <i className="bi bi-grid-3x3-gap" />
+                          Jogar
+                        </Link>
                         <Link href="/perfil" className="dropdown-item">
                           <i className="bi bi-person" />
-                          Minha Conta
+                          Perfil
                         </Link>
-                        <Link href="/historico" className="dropdown-item">
-                          <i className="bi bi-clock-history" />
-                          Histórico
+                        <Link href="/depositar" className="dropdown-item">
+                          <i className="bi bi-plus-circle" />
+                          Depósito
+                        </Link>
+                        <Link href="/sacar" className="dropdown-item">
+                          <i className="bi bi-dash-circle" />
+                          Saque
+                        </Link>
+                        <Link href="/transacoes" className="dropdown-item">
+                          <i className="bi bi-arrow-left-right" />
+                          Transações
+                        </Link>
+                        <Link href="/jogar" className="dropdown-item">
+                          <i className="bi bi-controller" />
+                          Apostas
                         </Link>
                         <div className="dropdown-divider" />
                         <button className="dropdown-item logout" onClick={logout}>

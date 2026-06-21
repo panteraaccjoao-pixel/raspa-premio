@@ -75,7 +75,6 @@ export default function HomeShowcase({
           height: auto;
           display: block;
           max-height: 720px;
-          object-fit: contain;
         }
         /* fallback p/ banner padrão (sem imagem) */
         .banner-default-wrap {
@@ -219,10 +218,10 @@ export default function HomeShowcase({
                 <div className={`banner-slide${i === current ? " active" : ""}`} key={b.id}>
                   {b.link ? (
                     <Link href={b.link}>
-                      <img src={b.imageUrl} alt="Banner promocional" />
+                      <img src={b.imageUrl} alt="Banner promocional" style={{ objectFit: b.objectFit as any }} />
                     </Link>
                   ) : (
-                    <img src={b.imageUrl} alt="Banner promocional" />
+                    <img src={b.imageUrl} alt="Banner promocional" style={{ objectFit: b.objectFit as any }} />
                   )}
                 </div>
               ))}
@@ -291,7 +290,7 @@ export default function HomeShowcase({
                   <span className="rasp-price">
                     <small>R$</small>{g.price.toFixed(2).replace(".", ",")}
                   </span>
-                  <Link href={`/jogar/${g.id}`} className="rasp-btn">Jogar</Link>
+                  <Link href="/jogar" className="rasp-btn">Jogar</Link>
                 </div>
               </div>
             </div>

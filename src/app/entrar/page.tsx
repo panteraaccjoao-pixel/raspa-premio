@@ -21,7 +21,7 @@ export default function LoginPage() {
     });
     const data = await res.json();
     if (data.ok) {
-      router.push("/");
+      window.location.href = "/";
     } else {
       setError(data.error || "Erro ao entrar");
       setLoading(false);
