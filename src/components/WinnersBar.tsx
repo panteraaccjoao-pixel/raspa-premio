@@ -70,11 +70,10 @@ export default function WinnersBar({
         }
         .winner-avatar.has-img {
           background: transparent;
+          border: none;
+          border-radius: 0;
         }
-        .winner-avatar.png-bg {
-          background: #5c0000;
-        }
-        .winner-avatar img { width: 100%; height: 100%; object-fit: contain; }
+        .winner-avatar img { width: 100%; height: 100%; object-fit: contain; border-radius: 0; }
         .winner-info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
         .winner-name { color: #fff; font-weight: 700; font-size: 0.9rem; }
         .winner-time { color: #9ca3af; font-size: 0.8rem; }
@@ -107,7 +106,7 @@ export default function WinnersBar({
           <div className="winners-track">
             {[...winners, ...winners].map((w, i) => (
               <div className="winner-card" key={`${w.id}-${i}`}>
-                <div className={`winner-avatar${w.imageUrl ? " has-img" : ""}${w.imageUrl?.startsWith("data:image/png") || w.imageUrl?.toLowerCase().includes(".png") ? " png-bg" : ""}`}>
+                <div className={`winner-avatar${w.imageUrl ? " has-img" : ""}`}>
                   {w.imageUrl ? (
                     <img src={w.imageUrl} alt="Prêmio" />
                   ) : (
