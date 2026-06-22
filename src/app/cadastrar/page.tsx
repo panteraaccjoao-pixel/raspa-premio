@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Recaptcha from "@/components/Recaptcha";
+
+const RECAPTCHA_ON = !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const STEPS = [
   { icon: "bi-person-plus", title: "Crie sua conta", desc: "Cadastro rápido e gratuito em menos de 1 minuto." },
@@ -14,20 +17,27 @@ const STEPS = [
 export default function RegisterPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (RECAPTCHA_ON && !captchaToken) {
+      setError("Confirme que você não é um robô.");
+      return;
+    }
     setLoading(true);
     setError("");
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, captchaToken }),
     });
     const data = await res.json();
-    if (data.ok) {
+    if (data.needsVerification) {
+      router.push(`/verificar?email=${encodeURIComponent(data.email)}`);
+    } else if (data.ok) {
       router.push("/");
     } else {
       setError(data.error || "Erro ao cadastrar");
@@ -523,6 +533,8 @@ export default function RegisterPage() {
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                   />
                 </div>
+
+                <Recaptcha onChange={setCaptchaToken} />
 
                 <button type="submit" className="submit-btn" disabled={loading}>
                   <i className="bi bi-dice-3-fill" />

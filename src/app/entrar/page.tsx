@@ -3,24 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Recaptcha from "@/components/Recaptcha";
+
+const RECAPTCHA_ON = !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 export default function LoginPage() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (RECAPTCHA_ON && !captchaToken) {
+      setError("Confirme que você não é um robô.");
+      return;
+    }
     setLoading(true);
     setError("");
     const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, captchaToken }),
     });
     const data = await res.json();
-    if (data.ok) {
+    if (data.needsVerification) {
+      router.push(`/verificar?email=${encodeURIComponent(data.email)}`);
+    } else if (data.ok) {
       window.location.href = "/";
     } else {
       setError(data.error || "Erro ao entrar");
@@ -433,6 +443,8 @@ export default function LoginPage() {
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                   />
                 </div>
+
+                <Recaptcha onChange={setCaptchaToken} />
 
                 <button type="submit" className="submit-btn" disabled={loading}>
                   <i className="bi bi-box-arrow-in-right" />

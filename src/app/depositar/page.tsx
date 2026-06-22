@@ -12,10 +12,11 @@ export default function DepositPage() {
   const [balance, setBalance] = useState(0);
   const [amount, setAmount] = useState(0);
   const [custom, setCustom] = useState("");
+  const [depError, setDepError] = useState("");
   const [slider, setSlider] = useState(MIN);
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
-  const [pix, setPix] = useState<{ txId: string; pixCode: string; amount: number } | null>(null);
+  const [pix, setPix] = useState<{ txId: string; pixCode: string; qrCodeImage?: string | null; amount: number } | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [checking, setChecking] = useState(false);
 
@@ -25,6 +26,24 @@ export default function DepositPage() {
       else setBalance(d.user.balance ?? 0);
     });
   }, [router]);
+
+  // Polling: detecta quando o webhook confirma o pagamento e credita o saldo.
+  useEffect(() => {
+    if (step !== 2 || !pix || confirmed) return;
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/deposit/status?txId=${pix.txId}`);
+        const d = await r.json();
+        if (d.status === "completed") {
+          clearInterval(interval);
+          setConfirmed(true);
+          window.dispatchEvent(new Event("balance:update"));
+          setTimeout(() => router.push("/jogar"), 2000);
+        }
+      } catch {}
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [step, pix, confirmed, router]);
 
   const finalAmount = custom ? parseFloat(custom) || 0 : amount;
   const hasBonus = finalAmount >= 100;
@@ -50,6 +69,7 @@ export default function DepositPage() {
   }
 
   async function goToPix() {
+    setDepError("");
     setLoading(true);
     const res = await fetch("/api/deposit", {
       method: "POST",
@@ -59,6 +79,7 @@ export default function DepositPage() {
     const data = await res.json();
     setLoading(false);
     if (res.ok) { setPix(data); setStep(2); }
+    else setDepError(data.error || "Erro ao gerar PIX");
   }
 
   async function confirmDev() {
@@ -71,6 +92,7 @@ export default function DepositPage() {
     });
     setChecking(false);
     setConfirmed(true);
+    window.dispatchEvent(new Event("balance:update"));
     setTimeout(() => router.push("/jogar"), 2000);
   }
 
@@ -345,6 +367,12 @@ export default function DepositPage() {
                 />
                 <div className="dep-custom-hint">Mínimo: R$ {MIN},00 · Máximo: R$ {MAX},00</div>
 
+                {depError && (
+                  <div style={{ color: "#f87171", fontSize: ".85rem", marginTop: ".75rem", textAlign: "center" }}>
+                    {depError}
+                  </div>
+                )}
+
                 <button
                   className={`dep-submit${finalAmount >= MIN ? " ready" : " disabled"}`}
                   onClick={finalAmount >= MIN ? goToPix : undefined}
@@ -367,7 +395,7 @@ export default function DepositPage() {
                 <div style={{display:"flex",justifyContent:"center",marginBottom:"1.25rem"}}>
                   <div style={{background:"#fff",padding:"12px",borderRadius:"12px",display:"inline-block"}}>
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(pix.pixCode)}&size=180x180`}
+                      src={pix.qrCodeImage || `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(pix.pixCode)}&size=180x180`}
                       alt="QR Code PIX"
                       width={180} height={180}
                       style={{display:"block"}}

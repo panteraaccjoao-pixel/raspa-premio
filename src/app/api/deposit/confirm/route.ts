@@ -1,8 +1,13 @@
-// DEV ONLY: simulate deposit confirmation
+// DEV ONLY: simula confirmação de depósito.
+// Em produção o crédito acontece via webhook da Velora (/api/webhooks/velora).
+// Esta rota fica BLOQUEADA em produção para impedir crédito sem pagamento.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Indisponível" }, { status: 403 });
+  }
   const { txId } = await req.json();
 
   const tx = await prisma.transaction.findUnique({ where: { id: txId } });

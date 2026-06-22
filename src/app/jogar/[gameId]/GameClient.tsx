@@ -69,6 +69,7 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
   const [user, setUser] = useState<{ name: string; balance: number } | null>(null);
   const [state, setState] = useState<"idle" | "playing" | "revealed" | "loading">("idle");
   const [prize, setPrize] = useState(0);
+  const [playId, setPlayId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [key, setKey] = useState(0);
 
@@ -92,17 +93,35 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
     const data = await res.json();
     if (!res.ok) { setError(data.error || "Erro ao iniciar jogo"); setState("idle"); return; }
     setPrize(data.prize);
+    setPlayId(data.playId ?? null);
+    // Só a aposta foi debitada aqui; o prêmio é creditado ao revelar a vitória.
     setUser(u => u ? { ...u, balance: data.balance } : u);
+    window.dispatchEvent(new Event("balance:update"));
     setState("playing");
   }
 
-  function onRevealed() {
+  async function onRevealed() {
     setState("revealed");
     if (prize > 0) {
       try { const audio = new Audio("/pw23check-winning-218995.mp3"); audio.play().catch(() => {}); } catch {}
+      // Credita o prêmio agora que a tela de vitória apareceu
+      if (playId) {
+        try {
+          const res = await fetch("/api/play/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playId }),
+          });
+          const data = await res.json();
+          if (res.ok && typeof data.balance === "number") {
+            setUser(u => u ? { ...u, balance: data.balance } : u);
+            window.dispatchEvent(new Event("balance:update"));
+          }
+        } catch {}
+      }
     }
   }
-  function playAgain() { setKey(k => k + 1); setState("idle"); setPrize(0); }
+  function playAgain() { setKey(k => k + 1); setState("idle"); setPrize(0); setPlayId(null); }
 
   const fmt = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
   const items = (dbPrizes && dbPrizes.length > 0)

@@ -84,10 +84,26 @@ export default function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/me")
-      .then((r) => r.json())
-      .then((d) => { if (d.user) setUser(d.user); })
-      .finally(() => setLoading(false));
+    function refresh() {
+      fetch("/api/me")
+        .then((r) => r.json())
+        .then((d) => { if (d.user) setUser(d.user); })
+        .finally(() => setLoading(false));
+    }
+    refresh();
+
+    // Atualiza o saldo quando: a aba volta ao foco, ou algum fluxo dispara
+    // o evento "balance:update" (depósito confirmado, jogada etc.)
+    function onFocus() { refresh(); }
+    function onVisible() { if (document.visibilityState === "visible") refresh(); }
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("balance:update", refresh as EventListener);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("balance:update", refresh as EventListener);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   useEffect(() => {

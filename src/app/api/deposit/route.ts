@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { createPixCharge } from "@/lib/velora";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -11,23 +12,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Valor mínimo: R$ 1,00" }, { status: 400 });
   }
 
-  // For now, simulate a PIX QR code response
-  // In production, integrate with VeloraPay here
-  const pixCode = `00020126580014BR.GOV.BCB.PIX01361234567890${Date.now()}5204000053039865406${amount.toFixed(2).replace(".", "")}5802BR5913RaspaSorte6008Brasilia62070503***6304`;
+  // Cria a cobrança PIX na VeloraPay. O CPF do pagador é exigido pela API,
+  // mas não pedimos ao usuário — geramos um CPF válido automaticamente.
+  let charge;
+  try {
+    charge = await createPixCharge({
+      amount,
+      payerName: session.name,
+      description: `Depósito RaspaPrêmio - ${session.email}`,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Erro ao gerar PIX";
+    return NextResponse.json({ error: msg }, { status: 502 });
+  }
 
+  // Guarda a transação local com o id da Velora (pixId) para o webhook reconciliar
   const tx = await prisma.transaction.create({
     data: {
       userId: session.id,
       type: "deposit",
       amount,
       status: "pending",
-      pixCode,
+      pixId: charge.id,
+      pixCode: charge.pixCode,
     },
   });
 
   return NextResponse.json({
     txId: tx.id,
-    pixCode,
+    pixCode: charge.pixCode,
+    qrCodeImage: charge.qrCodeImage ?? null,
     amount,
     expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
   });
