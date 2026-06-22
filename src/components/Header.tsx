@@ -62,6 +62,20 @@ export function LogoMark({ size = 46 }: { size?: number }) {
   );
 }
 
+function playFilterSound() {
+  try {
+    const audio = new Audio("/denielcz-immersivecontrol-button-click-sound-463065.mp3");
+    audio.play().catch(() => {});
+  } catch {}
+}
+
+function playMenuSound() {
+  try {
+    const audio = new Audio(encodeURI("/liecio-menu-buttom-pack-190019 (mp3cut.net) (2).mp3"));
+    audio.play().catch(() => {});
+  } catch {}
+}
+
 export default function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -344,7 +358,7 @@ export default function Header() {
 
           <nav>
             <ul className="nav-menu">
-              <li><Link href="/" className="nav-link">Início</Link></li>
+              <li><Link href="/" className="nav-link" onClick={playMenuSound}>Início</Link></li>
               <li><Link href="/jogar" className="nav-link">Raspadinhas</Link></li>
             </ul>
           </nav>
@@ -369,32 +383,32 @@ export default function Header() {
                         <i className={`bi bi-chevron-down dropdown-arrow${dropdownOpen ? " open" : ""}`} />
                       </button>
                       <div className={`dropdown-menu${dropdownOpen ? " open" : ""}`}>
-                        <Link href="/jogar" className="dropdown-item">
+                        <Link href="/jogar" className="dropdown-item" onClick={playFilterSound}>
                           <i className="bi bi-grid-3x3-gap" />
                           Jogar
                         </Link>
-                        <Link href="/perfil" className="dropdown-item">
+                        <Link href="/perfil" className="dropdown-item" onClick={playFilterSound}>
                           <i className="bi bi-person" />
                           Perfil
                         </Link>
-                        <Link href="/depositar" className="dropdown-item">
+                        <Link href="/depositar" className="dropdown-item" onClick={playFilterSound}>
                           <i className="bi bi-plus-circle" />
                           Depósito
                         </Link>
-                        <Link href="/sacar" className="dropdown-item">
+                        <Link href="/sacar" className="dropdown-item" onClick={playFilterSound}>
                           <i className="bi bi-dash-circle" />
                           Saque
                         </Link>
-                        <Link href="/transacoes" className="dropdown-item">
+                        <Link href="/transacoes" className="dropdown-item" onClick={playFilterSound}>
                           <i className="bi bi-arrow-left-right" />
                           Transações
                         </Link>
-                        <Link href="/jogar" className="dropdown-item">
+                        <Link href="/jogar" className="dropdown-item" onClick={playFilterSound}>
                           <i className="bi bi-controller" />
                           Apostas
                         </Link>
                         <div className="dropdown-divider" />
-                        <button className="dropdown-item logout" onClick={logout}>
+                        <button className="dropdown-item logout" onClick={() => { playFilterSound(); logout(); }}>
                           <i className="bi bi-box-arrow-left" />
                           Sair
                         </button>
@@ -430,7 +444,7 @@ export default function Header() {
           </button>
         </div>
         <nav className="sidebar-nav">
-          <Link href="/" className="sidebar-item" onClick={() => setSidebarOpen(false)}>
+          <Link href="/" className="sidebar-item" onClick={() => { playMenuSound(); setSidebarOpen(false); }}>
             <i className="bi bi-house" /> Início
           </Link>
           <Link href="/jogar" className="sidebar-item" onClick={() => setSidebarOpen(false)}>
@@ -470,7 +484,7 @@ export default function Header() {
         <div className="bottom-nav-container">
           {user ? (
             <>
-              <Link href="/" className="bottom-nav-item">
+              <Link href="/" className="bottom-nav-item" onClick={playMenuSound}>
                 <i className="bi bi-house-fill" /><span>Início</span>
               </Link>
               <Link href="/jogar" className="bottom-nav-item">
@@ -485,7 +499,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/" className="bottom-nav-item active">
+              <Link href="/" className="bottom-nav-item active" onClick={playMenuSound}>
                 <i className="bi bi-house-fill" /><span>Início</span>
               </Link>
               <Link href="/jogar" className="bottom-nav-item">

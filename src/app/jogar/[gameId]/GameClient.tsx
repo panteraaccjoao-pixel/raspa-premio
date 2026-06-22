@@ -48,6 +48,13 @@ const PRIZE_ITEMS: Record<string, { label: string; value: number; icon: string }
   ],
 };
 
+function playMenuSound() {
+  try {
+    const audio = new Audio(encodeURI("/liecio-menu-buttom-pack-190019 (mp3cut.net) (2).mp3"));
+    audio.play().catch(() => {});
+  } catch {}
+}
+
 const HOW_TO = [
   { n: 1, icon: "bi-ticket-perforated-fill", text: 'Comprar e Raspar', sub: "Clique no botão abaixo" },
   { n: 2, icon: "bi-eraser-fill", text: "Raspe a cartela", sub: "Com o mouse ou dedo" },
@@ -73,6 +80,7 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
   }, [router]);
 
   async function startGame() {
+    try { const audio = new Audio("/sombotao.mp3"); audio.play().catch(() => {}); } catch {}
     if (!user) { router.push("/entrar"); return; }
     if (user.balance < game.price) { router.push("/depositar"); return; }
     setState("loading"); setError("");
@@ -88,7 +96,12 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
     setState("playing");
   }
 
-  function onRevealed() { setState("revealed"); }
+  function onRevealed() {
+    setState("revealed");
+    if (prize > 0) {
+      try { const audio = new Audio("/pw23check-winning-218995.mp3"); audio.play().catch(() => {}); } catch {}
+    }
+  }
   function playAgain() { setKey(k => k + 1); setState("idle"); setPrize(0); }
 
   const fmt = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
@@ -167,60 +180,75 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
         .gc-balance span:first-child{color:#6b7280;font-size:.8rem;}
         .gc-balance span:last-child{color:#ef4444;font-weight:900;font-size:1rem;}
 
-        /* scratch area */
-        .gc-scratch{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:1.25rem;margin-bottom:1rem;}
-        .gc-scratch-title{color:#fff;font-size:.85rem;font-weight:800;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;}
-        .gc-scratch-title i{color:#ef4444;}
-
-        /* idle – 3 zonas raspadinha */
-        .gc-idle{
-          position:relative;border-radius:16px;overflow:hidden;
-          background:linear-gradient(160deg,#0f0f0f,#181818);
-          padding:1.25rem 1rem 1.1rem;
-          display:flex;flex-direction:column;align-items:center;gap:.85rem;
+        /* scratch area – premium ticket */
+        .gc-scratch{
+          position:relative;border-radius:22px;padding:1.4rem 1.25rem 1.25rem;margin-bottom:1rem;
+          background:radial-gradient(120% 100% at 50% 0%,#1a1010 0%,#0a0a0a 65%);
+          border:1px solid rgba(220,38,38,.25);
+          box-shadow:0 0 0 1px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.55),0 0 40px rgba(220,38,38,.08);
+          overflow:hidden;
         }
-        .gc-idle::before{
-          content:'';position:absolute;inset:0;border-radius:16px;
-          background:linear-gradient(135deg,rgba(255,200,0,.06) 0%,transparent 60%);
-          pointer-events:none;
+        .gc-scratch::before{
+          content:'';position:absolute;top:0;left:0;right:0;height:1px;
+          background:linear-gradient(90deg,transparent,rgba(239,68,68,.7),transparent);
+        }
+        .gc-scratch-title{
+          color:#fff;font-size:.78rem;font-weight:900;margin-bottom:1.1rem;
+          display:flex;align-items:center;gap:.5rem;text-transform:uppercase;letter-spacing:.1em;
+        }
+        .gc-scratch-title i{
+          color:#ef4444;font-size:1rem;
+          filter:drop-shadow(0 0 6px rgba(239,68,68,.6));
+        }
+
+        /* idle */
+        .gc-idle{
+          position:relative;display:flex;flex-direction:column;align-items:center;gap:1rem;
+        }
+        /* prize banner */
+        .gc-idle > div:first-child{
+          width:100%;
+          background:linear-gradient(135deg,rgba(220,38,38,.14),rgba(220,38,38,.04));
+          border:1px solid rgba(220,38,38,.25);
+          border-radius:14px;padding:.9rem 1.1rem;
+          box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
         }
         .gc-idle-label{
-          color:rgba(255,255,255,.35);font-size:.62rem;font-weight:700;
-          letter-spacing:.14em;text-transform:uppercase;
+          color:rgba(255,255,255,.4);font-size:.58rem;font-weight:800;
+          letter-spacing:.18em;text-transform:uppercase;
         }
         .gc-idle-prize{
-          font-size:2.1rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em;
-          text-shadow:0 2px 20px rgba(255,200,0,.25);
+          font-size:2rem;font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.02em;
+          text-shadow:0 2px 24px rgba(239,68,68,.4);
         }
         /* 3x3 caixas raspar */
-        .gc-idle-boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;width:100%;}
+        .gc-idle-boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:0;width:100%;border-radius:16px;overflow:hidden;}
         .gc-idle-box{
-          border-radius:8px;overflow:hidden;position:relative;
+          border-radius:0;overflow:hidden;position:relative;
           aspect-ratio:1;
-          background:linear-gradient(145deg,#e5e7eb,#ffffff 45%,#d1d5db 70%,#f3f4f6);
+          background:
+            radial-gradient(circle at 30% 25%,#fff 0%,#e8eaed 40%,#cfd2d6 100%);
           display:flex;align-items:center;justify-content:center;
-          box-shadow:0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.8);
+          box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 2px 3px rgba(255,255,255,.9),inset 0 -3px 6px rgba(0,0,0,.12);
+          border:1px solid rgba(0,0,0,.08);
         }
         .gc-idle-box::before{
           content:'';position:absolute;inset:0;
-          background:repeating-linear-gradient(50deg,transparent,transparent 4px,rgba(0,0,0,.04) 4px,rgba(0,0,0,.04) 5px);
-        }
-        .gc-idle-box::after{
-          content:'';position:absolute;top:0;left:0;right:0;height:45%;
-          background:linear-gradient(180deg,rgba(255,255,255,.5),transparent);
+          background:repeating-linear-gradient(135deg,transparent,transparent 6px,rgba(0,0,0,.035) 6px,rgba(0,0,0,.035) 7px);
         }
         .gc-idle-box-q{
           position:relative;z-index:1;
-          font-size:1.4rem;font-weight:900;color:rgba(0,0,0,.12);
+          font-size:1.6rem;font-weight:900;color:rgba(0,0,0,.14);
           user-select:none;
         }
         /* hint */
         .gc-idle-hint{
-          display:flex;align-items:center;gap:.4rem;
-          color:rgba(255,255,255,.3);font-size:.7rem;font-weight:600;
+          display:flex;align-items:center;gap:.45rem;
+          color:rgba(239,68,68,.7);font-size:.72rem;font-weight:700;
+          letter-spacing:.02em;
         }
         .gc-idle-hint i{animation:gc-hint-pulse 1.5s ease-in-out infinite alternate;}
-        @keyframes gc-hint-pulse{0%{opacity:.3}100%{opacity:1}}
+        @keyframes gc-hint-pulse{0%{opacity:.35}100%{opacity:1}}
 
         /* error */
         .gc-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:.65rem 1rem;margin-bottom:.75rem;color:#f87171;font-size:.82rem;display:flex;align-items:center;gap:.5rem;}
@@ -253,7 +281,7 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
       <div className="gc">
         <div className="gc-wrap">
 
-          <Link href="/jogar" className="gc-back">
+          <Link href="/jogar" className="gc-back" onClick={playMenuSound}>
             <i className="bi bi-arrow-left" /> Voltar aos jogos
           </Link>
 
@@ -405,7 +433,7 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
                 </button>
               )}
               {state === "revealed" && (
-                <Link href="/jogar" className="gc-btn gc-btn-ghost" style={{ textDecoration:"none" }}>
+                <Link href="/jogar" className="gc-btn gc-btn-ghost" style={{ textDecoration:"none" }} onClick={playMenuSound}>
                   <i className="bi bi-arrow-left" /> Trocar de jogo
                 </Link>
               )}

@@ -7,6 +7,20 @@ import type { BannerData, RaspadinhaData, WinnerData } from "@/lib/site-data";
 
 type Filter = "TODOS" | "DINHEIRO";
 
+function playButtonSound() {
+  try {
+    const audio = new Audio("/sombotao.mp3");
+    audio.play().catch(() => {});
+  } catch {}
+}
+
+function playFilterSound() {
+  try {
+    const audio = new Audio("/denielcz-immersivecontrol-button-click-sound-463065.mp3");
+    audio.play().catch(() => {});
+  } catch {}
+}
+
 export default function HomeShowcase({
   banners,
   games,
@@ -256,13 +270,13 @@ export default function HomeShowcase({
           <div className="rasp-filter">
             <button
               className={filter === "TODOS" ? "active" : ""}
-              onClick={() => setFilter("TODOS")}
+              onClick={() => { playFilterSound(); setFilter("TODOS"); }}
             >
               Todos
             </button>
             <button
               className={filter === "DINHEIRO" ? "active" : ""}
-              onClick={() => setFilter("DINHEIRO")}
+              onClick={() => { playFilterSound(); setFilter("DINHEIRO"); }}
             >
               Dinheiro
             </button>
@@ -290,7 +304,7 @@ export default function HomeShowcase({
                   <span className="rasp-price">
                     <small>R$</small>{g.price.toFixed(2).replace(".", ",")}
                   </span>
-                  <Link href="/jogar" className="rasp-btn">Jogar</Link>
+                  <Link href="/jogar" className="rasp-btn" onClick={playButtonSound}>Jogar</Link>
                 </div>
               </div>
             </div>

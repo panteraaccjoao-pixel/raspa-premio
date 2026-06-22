@@ -8,7 +8,9 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // A CLI (migrations / db push) usa esta conexão. Prefira a conexão DIRETA
+  // (porta 5432) do Supabase; cai para DATABASE_URL se DIRECT_URL não existir.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"] || process.env["DATABASE_URL"],
   },
 });

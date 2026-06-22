@@ -10,12 +10,13 @@ export default async function GamePage({ params }: { params: Promise<{ gameId: s
   const game = await getMergedGame(gameId);
   if (!game) notFound();
 
-  const dbPrizes = await prisma.$queryRawUnsafe(
-    `SELECT id, label, value, imageUrl, sortOrder FROM GamePrize WHERE gameId = ? AND active = 1 ORDER BY value DESC`,
-    gameId
-  ) as any[];
+  const dbPrizes = await prisma.gamePrize.findMany({
+    where: { gameId, active: true },
+    orderBy: { value: "desc" },
+    select: { id: true, label: true, value: true, imageUrl: true, sortOrder: true },
+  });
 
-  const prizes = dbPrizes.map((p: any) => ({
+  const prizes = dbPrizes.map((p) => ({
     label: p.label,
     value: p.value,
     imageUrl: p.imageUrl,

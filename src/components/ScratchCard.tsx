@@ -117,8 +117,8 @@ export default function ScratchCard({ prize, onRevealed, dbPrizes = [] }: Props)
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: ".65rem" }}>
       <style>{`
-        .sg-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .45rem; }
-        .sg-cell { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .sg-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; border-radius: 16px; overflow: hidden; }
+        .sg-cell { position: relative; border-radius: 0; overflow: hidden; aspect-ratio: 1; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
         .sg-back { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: #111; padding: 6px; }
         .sg-back.win-back { background: rgba(22,199,91,.08); border: 1px solid rgba(22,199,91,.25); }
         .sg-cover { position: absolute; inset: 0; background: linear-gradient(145deg,#e5e7eb,#ffffff 45%,#d1d5db 70%,#f3f4f6); display: flex; align-items: center; justify-content: center; transition: opacity .25s ease, transform .25s ease; transform-origin: center; }

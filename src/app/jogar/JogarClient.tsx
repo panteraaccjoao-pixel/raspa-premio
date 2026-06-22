@@ -6,6 +6,20 @@ import type { RaspadinhaData } from "@/lib/site-data";
 
 type Filtro = "TODAS" | "ATE10" | "10A50" | "ACIMA50";
 
+function playButtonSound() {
+  try {
+    const audio = new Audio("/sombotao.mp3");
+    audio.play().catch(() => {});
+  } catch {}
+}
+
+function playFilterSound() {
+  try {
+    const audio = new Audio("/denielcz-immersivecontrol-button-click-sound-463065.mp3");
+    audio.play().catch(() => {});
+  } catch {}
+}
+
 const FILTROS: { key: Filtro; label: string; icon: string }[] = [
   { key: "TODAS", label: "Todas as Raspadinhas", icon: "bi-grid-3x3-gap-fill" },
   { key: "ATE10", label: "Até R$ 10", icon: "bi-coin" },
@@ -150,7 +164,7 @@ export default function JogarClient({ games, winnersTotal }: { games: Raspadinha
             <button
               key={f.key}
               className={`jc-filter${filtro === f.key ? " active" : ""}`}
-              onClick={() => setFiltro(f.key)}
+              onClick={() => { playFilterSound(); setFiltro(f.key); }}
             >
               <i className={`bi ${f.icon}`} /> {f.label}
             </button>
@@ -179,7 +193,7 @@ export default function JogarClient({ games, winnersTotal }: { games: Raspadinha
                     <div className="l">Prêmio máximo</div>
                     <div className="v">R$ {g.maxPrize.toLocaleString("pt-BR")}</div>
                   </div>
-                  <Link href={`/jogar/${g.id}`} className="jc-btn">Jogar</Link>
+                  <Link href={`/jogar/${g.id}`} className="jc-btn" onClick={playButtonSound}>Jogar</Link>
                 </div>
               </div>
             </div>
