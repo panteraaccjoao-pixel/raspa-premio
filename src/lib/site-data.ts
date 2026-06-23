@@ -40,12 +40,14 @@ const DEFAULT_BANNERS = [
   { imageUrl: bannerSvg("Prêmios", "de até R$ 15.000", "Cadastre-se grátis e comece a ganhar."), link: "/cadastrar" },
 ];
 
-/** Cria os banners padrão na primeira vez (para serem editáveis no admin). */
+/** Cria os banners padrão na primeira vez (para serem editáveis no admin).
+ *  IDs determinísticos + skipDuplicates evitam duplicação sob concorrência. */
 export async function ensureBannersSeed() {
   const count = await prisma.banner.count();
   if (count === 0) {
     await prisma.banner.createMany({
-      data: DEFAULT_BANNERS.map((b, i) => ({ ...b, sortOrder: i })),
+      data: DEFAULT_BANNERS.map((b, i) => ({ ...b, id: `default-banner-${i}`, sortOrder: i })),
+      skipDuplicates: true,
     });
   }
 }
@@ -97,7 +99,8 @@ export async function getWinners(): Promise<{ winners: WinnerData[]; total: numb
 
   if (rows.length === 0) {
     await prisma.winner.createMany({
-      data: DEFAULT_WINNERS.map((w, i) => ({ ...w, sortOrder: i })),
+      data: DEFAULT_WINNERS.map((w, i) => ({ ...w, id: `default-winner-${i}`, sortOrder: i })),
+      skipDuplicates: true,
     });
     rows = await prisma.winner.findMany({ where: { active: true } });
   }
@@ -128,7 +131,12 @@ export async function getWinnersTotal(winners?: WinnerData[]): Promise<number> {
 
   const rows = winners ?? (await prisma.winner.findMany({ where: { active: true } })).map((w) => ({ value: w.value } as WinnerData));
   const def = rows.reduce((sum, w) => sum + w.value, 0) + 25886;
-  await prisma.setting.create({ data: { key: "winnersTotal", value: String(def) } });
+  // upsert é seguro sob concorrência (várias requisições na primeira carga)
+  await prisma.setting.upsert({
+    where: { key: "winnersTotal" },
+    update: {},
+    create: { key: "winnersTotal", value: String(def) },
+  });
   return def;
 }
 
@@ -158,6 +166,7 @@ export async function getRaspadinhas(): Promise<RaspadinhaData[]> {
         maxPrize: g.maxPrize,
         active: true,
       })),
+      skipDuplicates: true,
     });
     settings = await (prisma.gameSetting as any).findMany();
   }
