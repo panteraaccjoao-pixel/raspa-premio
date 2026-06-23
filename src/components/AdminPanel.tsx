@@ -3,19 +3,21 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-type Tab = "dashboard" | "usuarios" | "recargas" | "jogadas" | "banners" | "raspadinhas" | "ganhadores";
+type Tab = "dashboard" | "usuarios" | "recargas" | "saques" | "jogadas" | "banners" | "raspadinhas" | "ganhadores";
 
 interface Banner { id: string; imageUrl: string; link: string | null; objectFit: string; sortOrder: number; active: boolean; }
 interface GameRow { id: string; name: string; price: number; maxPrize: number; description: string; imageUrl: string; category: string; }
 interface Winner { id: string; imageUrl: string; name: string; value: number; badge: string; minutesAgo: number; sortOrder: number; active: boolean; }
 interface UserRow { id: string; name: string; email: string; phone: string | null; balance: number; createdAt: string; }
 interface Recarga { id: string; user: string; email: string; amount: number; status: string; createdAt: string; }
+interface Saque { id: string; user: string; email: string; amount: number; pixKey: string; status: string; createdAt: string; }
 interface Play { id: string; user: string; game: string; betAmount: number; prize: number; won: boolean; createdAt: string; }
 
 const NAV: { key: Tab; label: string; icon: string }[] = [
   { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
   { key: "usuarios", label: "Usuários", icon: "bi-people-fill" },
   { key: "recargas", label: "Recargas", icon: "bi-wallet2" },
+  { key: "saques", label: "Saques", icon: "bi-cash-stack" },
   { key: "jogadas", label: "Jogadas", icon: "bi-controller" },
   { key: "banners", label: "Banners", icon: "bi-images" },
   { key: "raspadinhas", label: "Raspadinhas", icon: "bi-grid-3x3-gap-fill" },
@@ -257,6 +259,7 @@ export default function AdminPanel() {
     dashboard: "Visão geral da plataforma",
     usuarios: "Gerencie contas e saldos",
     recargas: "Depósitos via PIX dos usuários",
+    saques: "Pedidos de saque — pague o PIX e marque como pago",
     jogadas: "Histórico de partidas",
     banners: "Gerencie as imagens do carrossel da home",
     raspadinhas: "Edite imagem, título, valor e descrição dos produtos",
@@ -297,6 +300,7 @@ export default function AdminPanel() {
         {tab === "dashboard" && <DashboardTab />}
         {tab === "usuarios" && <UsuariosTab />}
         {tab === "recargas" && <RecargasTab />}
+        {tab === "saques" && <SaquesTab />}
         {tab === "jogadas" && <JogadasTab />}
         {tab === "banners" && <BannersTab />}
         {tab === "raspadinhas" && <RaspadinhasTab />}
@@ -485,6 +489,47 @@ function RecargasTab() {
             </tr>
           ))}
           {items.length === 0 && <tr><td colSpan={6} style={{ color: "#9ca3af" }}>Nenhuma recarga.</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ---------------- Saques ---------------- */
+function SaquesTab() {
+  const [items, setItems] = useState<Saque[]>([]);
+  const load = useCallback(async () => {
+    const r = await fetch("/api/admin/saques");
+    const d = await r.json();
+    setItems(d.saques || []);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function setStatus(id: string, status: string) {
+    if (status === "cancelled" && !confirm("Cancelar este saque e devolver o saldo ao usuário?")) return;
+    await fetch(`/api/admin/saques/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+    load();
+  }
+
+  return (
+    <div className="adm-tablewrap">
+      <table className="adm-table">
+        <thead><tr><th>Usuário</th><th>Chave PIX</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+        <tbody>
+          {items.map((t) => (
+            <tr key={t.id}>
+              <td>{t.user}<br /><span style={{ color: "#9ca3af", fontSize: ".8em" }}>{t.email}</span></td>
+              <td style={{ fontFamily: "monospace", fontSize: ".85em", wordBreak: "break-all" }}>{t.pixKey}</td>
+              <td>{BRL(t.amount)}</td>
+              <td><StatusPill status={t.status} /></td>
+              <td>{fmtDate(t.createdAt)}</td>
+              <td style={{ whiteSpace: "nowrap" }}>
+                {t.status !== "completed" && <><button className="adm-mini green" onClick={() => setStatus(t.id, "completed")}>Marcar pago</button>{" "}</>}
+                {t.status !== "cancelled" && <button className="adm-mini" onClick={() => setStatus(t.id, "cancelled")}>Cancelar</button>}
+              </td>
+            </tr>
+          ))}
+          {items.length === 0 && <tr><td colSpan={6} style={{ color: "#9ca3af" }}>Nenhum saque.</td></tr>}
         </tbody>
       </table>
     </div>
