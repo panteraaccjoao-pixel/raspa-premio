@@ -12,7 +12,7 @@ export async function GET() {
   });
   const gameName = (id: string) => GAMES.find((g) => g.id === id)?.name ?? id;
   return NextResponse.json({
-    plays: plays.map((p) => ({
+    plays: plays.map((p: (typeof plays)[number]) => ({
       id: p.id,
       user: p.user.name,
       game: gameName(p.gameId),

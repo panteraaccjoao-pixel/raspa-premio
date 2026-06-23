@@ -62,7 +62,7 @@ export async function getBanners(): Promise<BannerData[]> {
     where: { active: true },
     orderBy: { sortOrder: "asc" },
   });
-  return banners.map((b) => ({ id: b.id, imageUrl: b.imageUrl, link: b.link, objectFit: (b as any).objectFit ?? "cover" }));
+  return banners.map((b: (typeof banners)[number]) => ({ id: b.id, imageUrl: b.imageUrl, link: b.link, objectFit: (b as any).objectFit ?? "cover" }));
 }
 
 export interface WinnerData {
@@ -107,7 +107,7 @@ export async function getWinners(): Promise<{ winners: WinnerData[]; total: numb
 
   rows.sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const winners: WinnerData[] = rows.map((w) => ({
+  const winners: WinnerData[] = rows.map((w: (typeof rows)[number]) => ({
     id: w.id,
     imageUrl: w.imageUrl,
     name: w.name,

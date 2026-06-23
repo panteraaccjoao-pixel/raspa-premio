@@ -34,7 +34,7 @@ export async function GET() {
     margem: totalApostado - totalPremios,
     saldoTotal: saldoAgg._sum.balance ?? 0,
     recentUsers,
-    recentDeps: recentDeps.map((d) => ({
+    recentDeps: recentDeps.map((d: (typeof recentDeps)[number]) => ({
       id: d.id, user: d.user.name, amount: d.amount, status: d.status, createdAt: d.createdAt,
     })),
   });

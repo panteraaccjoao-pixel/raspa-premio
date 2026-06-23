@@ -16,7 +16,7 @@ export default async function GamePage({ params }: { params: Promise<{ gameId: s
     select: { id: true, label: true, value: true, imageUrl: true, sortOrder: true },
   });
 
-  const prizes = dbPrizes.map((p) => ({
+  const prizes = dbPrizes.map((p: (typeof dbPrizes)[number]) => ({
     label: p.label,
     value: p.value,
     imageUrl: p.imageUrl,

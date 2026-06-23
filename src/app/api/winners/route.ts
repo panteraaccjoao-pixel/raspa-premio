@@ -9,7 +9,7 @@ export async function GET() {
     include: { user: { select: { name: true } } },
   });
 
-  const winners = plays.map((p) => ({
+  const winners = plays.map((p: (typeof plays)[number]) => ({
     name: p.user.name.split(" ")[0] + " " + (p.user.name.split(" ")[1]?.[0] ?? "") + ".",
     prize: p.prize,
     game: p.gameId,

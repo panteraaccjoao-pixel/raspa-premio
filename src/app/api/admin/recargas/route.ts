@@ -11,7 +11,7 @@ export async function GET() {
     include: { user: { select: { name: true, email: true } } },
   });
   return NextResponse.json({
-    recargas: txs.map((t) => ({
+    recargas: txs.map((t: (typeof txs)[number]) => ({
       id: t.id,
       user: t.user.name,
       email: t.user.email,
