@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const { email } = await req.json();
   if (!email) return NextResponse.json({ error: "Informe o email" }, { status: 400 });
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email: String(email).trim().toLowerCase() } });
   if (!user) {
     // Não revela se o email existe ou não
     return NextResponse.json({ ok: true });

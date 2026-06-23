@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Verificação anti-robô falhou. Tente novamente." }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const emailNorm = String(email ?? "").trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email: emailNorm } });
   if (!user) {
     return NextResponse.json({ error: "Usuário não encontrado" }, { status: 401 });
   }
@@ -32,6 +33,6 @@ export async function POST(req: NextRequest) {
 
   const token = signToken({ id: user.id, email: user.email, name: user.name });
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("token", token, { httpOnly: true, maxAge: 60 * 60 * 24 * 7, path: "/" });
+  res.cookies.set("token", token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 7, path: "/" });
   return res;
 }

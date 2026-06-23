@@ -15,10 +15,15 @@ export async function POST(req: NextRequest) {
   const game = merged;
   const price = merged.price;
 
-  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  const user = await prisma.user.findUnique({ where: { id: session.id }, select: { id: true } });
   if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
-  if (user.balance < price) {
+  // Débito atômico da aposta: só desconta se o saldo for suficiente (evita corrida).
+  const debited = await prisma.user.updateMany({
+    where: { id: user.id, balance: { gte: price } },
+    data: { balance: { decrement: price } },
+  });
+  if (debited.count === 0) {
     return NextResponse.json({ error: "Saldo insuficiente" }, { status: 400 });
   }
 
@@ -28,23 +33,10 @@ export async function POST(req: NextRequest) {
   const prize = winChance ? smallPrizes[Math.floor(Math.random() * smallPrizes.length)] : 0;
   const won = prize > 0;
 
-  // Aqui só debita a APOSTA. O prêmio (se houver) é creditado depois, quando
-  // o usuário revela a vitória, via /api/play/claim.
-  const [, play] = await prisma.$transaction([
-    prisma.user.update({
-      where: { id: user.id },
-      data: { balance: { decrement: price } },
-    }),
-    prisma.gamePlay.create({
-      data: {
-        userId: user.id,
-        gameId: game.id,
-        betAmount: price,
-        prize,
-        won,
-      },
-    }),
-  ]);
+  // Só a APOSTA foi debitada. O prêmio é creditado depois, via /api/play/claim.
+  const play = await prisma.gamePlay.create({
+    data: { userId: user.id, gameId: game.id, betAmount: price, prize, won },
+  });
 
   const updated = await prisma.user.findUnique({
     where: { id: user.id },
