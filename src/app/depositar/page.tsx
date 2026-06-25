@@ -85,9 +85,10 @@ export default function DepositPage() {
   async function confirmDev() {
     if (!pix) return;
     setChecking(true);
+    const devToken = process.env.NEXT_PUBLIC_DEV_CONFIRM_TOKEN || "";
     await fetch("/api/deposit/confirm", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-dev-token": devToken },
       body: JSON.stringify({ txId: pix.txId }),
     });
     setChecking(false);
@@ -462,9 +463,11 @@ export default function DepositPage() {
                 </div>
                 <style>{`@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }`}</style>
 
-                <button className="pix-dev-btn" onClick={confirmDev} disabled={checking}>
-                  {checking ? "Confirmando..." : "✅ [DEV] Simular pagamento recebido"}
-                </button>
+                {process.env.NEXT_PUBLIC_DEV_CONFIRM_TOKEN && (
+                  <button className="pix-dev-btn" onClick={confirmDev} disabled={checking}>
+                    {checking ? "Confirmando..." : "✅ [DEV] Simular pagamento recebido"}
+                  </button>
+                )}
               </>
             ) : null}
           </div>
