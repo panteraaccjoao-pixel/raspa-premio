@@ -13,10 +13,28 @@ export async function POST(req: NextRequest) {
   const amount = Number(body.amount);
   const { pixKey, pixKeyType } = body;
 
-  if (!Number.isFinite(amount) || amount < MIN_WITHDRAWAL)
-    return NextResponse.json({ error: `Valor mínimo de saque é R$ ${MIN_WITHDRAWAL},00` }, { status: 400 });
-  if (!pixKey || !pixKeyType)
-    return NextResponse.json({ error: "Chave PIX obrigatória" }, { status: 400 });
+  if (!Number.isFinite(amount) || amount <= 0)
+    return NextResponse.json({ error: "Valor de saque inválido" }, { status: 400 });
+  if (amount < MIN_WITHDRAWAL + FEE)
+    return NextResponse.json({ error: `Valor mínimo de saque é R$ ${MIN_WITHDRAWAL + FEE},00 (incluso taxa de R$ ${FEE},00)` }, { status: 400 });
+  const validPixKeyTypes = ["CPF", "CNPJ", "EMAIL", "PHONE", "RANDOM"];
+  if (!pixKey || !pixKeyType || !validPixKeyTypes.includes(String(pixKeyType).toUpperCase())) {
+    return NextResponse.json({ error: "Tipo de chave PIX inválido" }, { status: 400 });
+  }
+
+  const pixKeyStr = String(pixKey).trim();
+  const pixKeyTypeNorm = String(pixKeyType).toUpperCase();
+
+  const pixKeyPatterns: Record<string, RegExp> = {
+    CPF: /^\d{11}$/,
+    CNPJ: /^\d{14}$/,
+    EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    PHONE: /^\+?\d{10,15}$/,
+    RANDOM: /^[a-f0-9-]{32,36}$/i,
+  };
+  if (!pixKeyPatterns[pixKeyTypeNorm]?.test(pixKeyStr)) {
+    return NextResponse.json({ error: "Formato de chave PIX inválido" }, { status: 400 });
+  }
 
   // Débito atômico: só decrementa se o saldo for suficiente (evita corrida/double-spend).
   const debited = await prisma.user.updateMany({
@@ -33,7 +51,7 @@ export async function POST(req: NextRequest) {
       type: "withdrawal",
       amount: netAmount,
       status: "pending",
-      pixCode: `${pixKeyType}:${pixKey}`,
+      pixCode: `${pixKeyTypeNorm}:${pixKeyStr}`,
     },
   });
 

@@ -69,7 +69,9 @@ function getClient(): Resend | null {
 export async function sendVerificationCode(email: string, name: string, code: string): Promise<boolean> {
   const resend = getClient();
   if (!resend) {
-    console.warn(`[email] RESEND_API_KEY ausente — código de ${email}: ${code} (apenas log, não enviado).`);
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(`[email] RESEND_API_KEY ausente — código de ${email}: ${code} (apenas log, não enviado).`);
+    }
     return false;
   }
   try {

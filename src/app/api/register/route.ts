@@ -4,8 +4,14 @@ import { prisma } from "@/lib/db";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { issueCode } from "@/lib/verification";
 import { sendVerificationCode } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!rateLimit(`register:${ip}`, 5, 60_000)) {
+    return NextResponse.json({ error: "Muitas tentativas. Aguarde 1 minuto." }, { status: 429 });
+  }
+
   const { name, email, phone, password, captchaToken } = await req.json();
 
   if (!name || !email || !phone || !password) {

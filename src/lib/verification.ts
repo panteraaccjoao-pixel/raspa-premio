@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { prisma } from "@/lib/db";
 
 // Estado de verificação de email guardado na tabela Setting (key/value),
@@ -32,7 +33,8 @@ async function write(email: string, state: VState) {
 }
 
 function genCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000)); // 6 dígitos
+  // randomInt é criptograficamente seguro (Node.js crypto)
+  return String(randomInt(100000, 1000000)); // 6 dígitos, entropia real
 }
 
 // Gera e armazena um novo código; retorna o código (para enviar por email).

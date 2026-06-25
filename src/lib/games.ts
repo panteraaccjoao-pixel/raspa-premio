@@ -1,3 +1,5 @@
+import { randomInt } from "crypto";
+
 export type GameCategory = "DINHEIRO" | "PRODUTOS";
 
 export interface Game {
@@ -98,7 +100,7 @@ export function getGame(id: string): Game | undefined {
 }
 
 export function rollPrize(game: Game): number {
-  const rand = Math.random();
+  const rand = randomInt(0, 1_000_000) / 1_000_000;
   let cumulative = 0;
   for (const prize of game.prizes) {
     cumulative += prize.probability;

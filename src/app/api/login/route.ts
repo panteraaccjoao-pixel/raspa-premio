@@ -5,8 +5,14 @@ import { signToken } from "@/lib/auth";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { hasPendingVerification, issueCode } from "@/lib/verification";
 import { sendVerificationCode } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!rateLimit(`login:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: "Muitas tentativas. Aguarde 1 minuto." }, { status: 429 });
+  }
+
   const { email, password, captchaToken } = await req.json();
 
   if (!(await verifyRecaptcha(captchaToken))) {

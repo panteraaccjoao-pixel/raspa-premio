@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
 import { confirmCode } from "@/lib/verification";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Confirma o código de verificação. Em caso de sucesso, loga o usuário.
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!rateLimit(`verify:${ip}`, 5, 60_000)) {
+    return NextResponse.json({ error: "Muitas tentativas. Aguarde 1 minuto." }, { status: 429 });
+  }
+
   const { email, code } = await req.json();
   if (!email || !code) {
     return NextResponse.json({ error: "Informe email e código" }, { status: 400 });

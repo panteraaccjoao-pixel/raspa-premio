@@ -8,8 +8,9 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
   const { amount } = await req.json();
-  if (!amount || amount < 1) {
-    return NextResponse.json({ error: "Valor mínimo: R$ 1,00" }, { status: 400 });
+  const numAmount = Number(amount);
+  if (!Number.isFinite(numAmount) || numAmount < 1 || numAmount > 100_000) {
+    return NextResponse.json({ error: "Valor inválido (mín R$ 1,00 / máx R$ 100.000,00)" }, { status: 400 });
   }
 
   // Cria a cobrança PIX na VeloraPay. O CPF do pagador é exigido pela API,
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
   let charge;
   try {
     charge = await createPixCharge({
-      amount,
+      amount: numAmount,
       payerName: session.name,
       description: `Depósito RaspaPrêmio - ${session.email}`,
     });
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     data: {
       userId: session.id,
       type: "deposit",
-      amount,
+      amount: numAmount,
       status: "pending",
       pixId: charge.id,
       pixCode: charge.pixCode,
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     txId: tx.id,
     pixCode: charge.pixCode,
     qrCodeImage: charge.qrCodeImage ?? null,
-    amount,
+    amount: numAmount,
     expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
   });
 }

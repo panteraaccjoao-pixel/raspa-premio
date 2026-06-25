@@ -5,11 +5,8 @@ import { cookies } from "next/headers";
 // nunca usar um segredo adivinhável que permitiria forjar tokens.
 function getSecret(): string {
   const s = process.env.JWT_SECRET;
-  if (s) return s;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("JWT_SECRET não configurado");
-  }
-  return "dev-only-insecure-secret-change-me";
+  if (!s) throw new Error("JWT_SECRET não configurado nas variáveis de ambiente");
+  return s;
 }
 
 export function signToken(payload: { id: string; email: string; name: string }) {

@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
 
   const game = merged;
   const price = merged.price;
+  if (!Number.isFinite(price) || price <= 0)
+    return NextResponse.json({ error: "Preço do jogo inválido" }, { status: 400 });
 
   const user = await prisma.user.findUnique({ where: { id: session.id }, select: { id: true } });
   if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
@@ -27,10 +29,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Saldo insuficiente" }, { status: 400 });
   }
 
-  // 10% chance de ganhar, máximo R$200 (valores altos mais raros)
-  const winChance = Math.random() < 0.10;
-  const smallPrizes = [2, 5, 5, 10, 10, 10, 20, 20, 50, 50, 100, 200];
-  const prize = winChance ? smallPrizes[Math.floor(Math.random() * smallPrizes.length)] : 0;
+  // Usa rollPrize com RNG criptograficamente seguro.
+  const prize = rollPrize(game);
   const won = prize > 0;
 
   // Só a APOSTA foi debitada. O prêmio é creditado depois, via /api/play/claim.

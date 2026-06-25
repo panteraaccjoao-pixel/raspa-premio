@@ -3,8 +3,13 @@
 // (permite rodar localmente / antes de configurar as chaves).
 export async function verifyRecaptcha(token: string | undefined | null): Promise<boolean> {
   const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) return true; // não configurado → não bloqueia
-  if (!token) return false;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("RECAPTCHA_SECRET_KEY não configurado");
+    }
+    return true; // permite apenas em desenvolvimento
+  }
+  if (!token || typeof token !== "string" || token.length > 2048) return false;
 
   try {
     const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {

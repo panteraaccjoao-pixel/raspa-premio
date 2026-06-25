@@ -28,6 +28,8 @@ model Transaction {
   pixId      String?
   pixCode    String?
   createdAt  DateTime @default(now())
+
+  @@unique([type, pixId])
 }
 
 model GamePlay {

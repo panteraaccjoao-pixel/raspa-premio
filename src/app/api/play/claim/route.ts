@@ -23,32 +23,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ credited: false, balance: u?.balance ?? 0 });
   }
 
-  // Já creditado? (marca = Transaction de prêmio com pixId = playId)
-  const existing = await prisma.transaction.findFirst({
-    where: { type: "prize", pixId: playId },
-  });
-  if (existing) {
-    const u = await prisma.user.findUnique({ where: { id: session.id }, select: { balance: true } });
-    return NextResponse.json({ credited: false, already: true, balance: u?.balance ?? 0 });
+  // Credita o prêmio de forma atômica. A constraint UNIQUE em (type, pixId)
+  // garante que dois requests simultâneos não criem duplicata — o segundo falha
+  // no create e cai no catch, retornando "already" sem duplo crédito.
+  let credited = false;
+  try {
+    await prisma.$transaction([
+      prisma.transaction.create({
+        data: {
+          userId: session.id,
+          type: "prize",
+          amount: play.prize,
+          status: "completed",
+          pixId: playId,
+        },
+      }),
+      prisma.user.update({
+        where: { id: session.id },
+        data: { balance: { increment: play.prize } },
+      }),
+    ]);
+    credited = true;
+  } catch (e: unknown) {
+    // Unique constraint violada = já foi creditado por outro request concorrente.
+    const msg = e instanceof Error ? e.message : "";
+    const isDuplicate = msg.includes("Unique constraint") || msg.includes("unique") || msg.includes("P2002");
+    if (!isDuplicate) throw e;
   }
 
-  // Credita o prêmio e registra a marca de idempotência
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: session.id },
-      data: { balance: { increment: play.prize } },
-    }),
-    prisma.transaction.create({
-      data: {
-        userId: session.id,
-        type: "prize",
-        amount: play.prize,
-        status: "completed",
-        pixId: playId,
-      },
-    }),
-  ]);
-
   const updated = await prisma.user.findUnique({ where: { id: session.id }, select: { balance: true } });
+  if (!credited) {
+    return NextResponse.json({ credited: false, already: true, balance: updated?.balance ?? 0 });
+  }
   return NextResponse.json({ credited: true, balance: updated!.balance });
 }

@@ -29,11 +29,11 @@ function headers() {
 }
 
 // URL pública do webhook que a Velora vai chamar quando o PIX for pago.
+// O segredo NÃO vai na URL — a Velora deve enviá-lo via header x-webhook-secret.
 function webhookUrl(): string | undefined {
   const base = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
   if (!base) return undefined;
-  const secret = process.env.WEBHOOK_SECRET || process.env.VELORAPAY_SECRET || "";
-  return `${base.replace(/\/$/, "")}/api/webhooks/velora?s=${encodeURIComponent(secret)}`;
+  return `${base.replace(/\/$/, "")}/api/webhooks/velora`;
 }
 
 export interface CreateChargeInput {
@@ -50,9 +50,15 @@ export interface PixCharge {
   raw: unknown;
 }
 
+function fetchWithTimeout(url: string, opts: RequestInit, ms = 15_000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
 export async function createPixCharge(input: CreateChargeInput): Promise<PixCharge> {
   const wh = webhookUrl();
-  const res = await fetch(`${BASE_URL}/payments/create`, {
+  const res = await fetchWithTimeout(`${BASE_URL}/payments/create`, {
     method: "POST",
     headers: {
       ...headers(),
@@ -109,7 +115,7 @@ export async function createPixCharge(input: CreateChargeInput): Promise<PixChar
 }
 
 export async function getPixCharge(id: string): Promise<{ status: string; raw: unknown }> {
-  const res = await fetch(`${BASE_URL}/payments/${encodeURIComponent(id)}`, { headers: headers() });
+  const res = await fetchWithTimeout(`${BASE_URL}/payments/${encodeURIComponent(id)}`, { headers: headers() });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error("Transação não encontrada na Velora");
   const tx = (data?.data ?? data?.payment ?? data?.transaction ?? data) as Record<string, unknown>;

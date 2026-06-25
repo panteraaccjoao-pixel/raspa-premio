@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,7 @@ interface Play { id: string; user: string; game: string; betAmount: number; priz
 
 const NAV: { key: Tab; label: string; icon: string }[] = [
   { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
-  { key: "usuarios", label: "Usuários", icon: "bi-people-fill" },
+  { key: "usuarios", label: "UsuÃ¡rios", icon: "bi-people-fill" },
   { key: "recargas", label: "Recargas", icon: "bi-wallet2" },
   { key: "saques", label: "Saques", icon: "bi-cash-stack" },
   { key: "jogadas", label: "Jogadas", icon: "bi-controller" },
@@ -27,7 +27,7 @@ const NAV: { key: Tab; label: string; icon: string }[] = [
 const BRL = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
-// Converte um arquivo de imagem em data-URI, redimensionando para não pesar no banco
+// Converte um arquivo de imagem em data-URI, redimensionando para nÃ£o pesar no banco
 function fileToDataUrl(file: File, maxW = 1920, removeDarkBg = false, asPng = false): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -71,7 +71,7 @@ function UploadBtn({ onPick, removeDarkBg, asPng }: { onPick: (dataUrl: string) 
   return (
     <>
       <button type="button" className="adm-btn ghost" disabled={busy} onClick={() => ref.current?.click()}>
-        <i className="bi bi-upload" /> {busy ? "Enviando…" : "Enviar foto"}
+        <i className="bi bi-upload" /> {busy ? "Enviandoâ€¦" : "Enviar foto"}
       </button>
       <input
         ref={ref}
@@ -250,20 +250,20 @@ export default function AdminPanel() {
   const [tab, setTab] = useState<Tab>("dashboard");
 
   async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin/login");
+    await fetch("/api/9bkp/logout", { method: "POST" });
+    router.push("/9bkp/login");
     router.refresh();
   }
 
   const sub = {
-    dashboard: "Visão geral da plataforma",
+    dashboard: "VisÃ£o geral da plataforma",
     usuarios: "Gerencie contas e saldos",
-    recargas: "Depósitos via PIX dos usuários",
-    saques: "Pedidos de saque — pague o PIX e marque como pago",
-    jogadas: "Histórico de partidas",
+    recargas: "DepÃ³sitos via PIX dos usuÃ¡rios",
+    saques: "Pedidos de saque â€” pague o PIX e marque como pago",
+    jogadas: "HistÃ³rico de partidas",
     banners: "Gerencie as imagens do carrossel da home",
-    raspadinhas: "Edite imagem, título, valor e descrição dos produtos",
-    ganhadores: "Configure a lista de últimos ganhadores",
+    raspadinhas: "Edite imagem, tÃ­tulo, valor e descriÃ§Ã£o dos produtos",
+    ganhadores: "Configure a lista de Ãºltimos ganhadores",
   }[tab];
 
   return (
@@ -275,7 +275,7 @@ export default function AdminPanel() {
       <aside className="adm-side">
         <div className="adm-logo">
           <span className="box"><i className="bi bi-dice-3-fill" /></span>
-          RaspaPrêmio
+          RaspaPrÃªmio
         </div>
         <nav className="adm-nav">
           {NAV.map((n) => (
@@ -322,7 +322,7 @@ function DashboardTab() {
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const r = await fetch("/api/admin/stats");
+      const r = await fetch("/api/9bkp/stats");
       const d = await r.json();
       if (alive) setS(d);
     };
@@ -330,16 +330,16 @@ function DashboardTab() {
     const t = setInterval(load, 8000);
     return () => { alive = false; clearInterval(t); };
   }, []);
-  if (!s) return <div className="adm-pagesub">Carregando…</div>;
+  if (!s) return <div className="adm-pagesub">Carregandoâ€¦</div>;
 
   const cards = [
-    { lbl: "Usuários", icon: "bi-people", val: String(s.usuarios), cls: "" },
-    { lbl: "Faturamento (depósitos)", icon: "bi-cash-stack", val: BRL(s.faturamento), cls: "green" },
-    { lbl: "Margem (apostas - prêmios)", icon: "bi-graph-up-arrow", val: BRL(s.margem), cls: s.margem >= 0 ? "green" : "red" },
+    { lbl: "UsuÃ¡rios", icon: "bi-people", val: String(s.usuarios), cls: "" },
+    { lbl: "Faturamento (depÃ³sitos)", icon: "bi-cash-stack", val: BRL(s.faturamento), cls: "green" },
+    { lbl: "Margem (apostas - prÃªmios)", icon: "bi-graph-up-arrow", val: BRL(s.margem), cls: s.margem >= 0 ? "green" : "red" },
     { lbl: "Recargas pendentes", icon: "bi-hourglass-split", val: String(s.depositosPendentes), cls: "" },
     { lbl: "Jogadas", icon: "bi-controller", val: String(s.jogadas), cls: "" },
     { lbl: "Total apostado", icon: "bi-coin", val: BRL(s.totalApostado), cls: "" },
-    { lbl: "Prêmios pagos", icon: "bi-trophy", val: BRL(s.totalPremios), cls: "red" },
+    { lbl: "PrÃªmios pagos", icon: "bi-trophy", val: BRL(s.totalPremios), cls: "red" },
     { lbl: "Saldo em contas", icon: "bi-wallet2", val: BRL(s.saldoTotal), cls: "" },
   ];
 
@@ -356,7 +356,7 @@ function DashboardTab() {
 
       <div className="adm-grid2">
         <div>
-          <div className="adm-cardtitle">Novos usuários</div>
+          <div className="adm-cardtitle">Novos usuÃ¡rios</div>
           <div className="adm-tablewrap">
             <table className="adm-table">
               <thead><tr><th>Nome</th><th>Email</th><th>Data</th></tr></thead>
@@ -373,7 +373,7 @@ function DashboardTab() {
           <div className="adm-cardtitle">Recargas recentes</div>
           <div className="adm-tablewrap">
             <table className="adm-table">
-              <thead><tr><th>Usuário</th><th>Valor</th><th>Status</th></tr></thead>
+              <thead><tr><th>UsuÃ¡rio</th><th>Valor</th><th>Status</th></tr></thead>
               <tbody>
                 {s.recentDeps.map((d) => (
                   <tr key={d.id}>
@@ -397,37 +397,37 @@ function StatusPill({ status }: { status: string }) {
   return <span className="adm-pill pend">Pendente</span>;
 }
 
-/* ---------------- Usuários ---------------- */
+/* ---------------- UsuÃ¡rios ---------------- */
 function UsuariosTab() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [q, setQ] = useState("");
   const load = useCallback(async (query = "") => {
-    const r = await fetch(`/api/admin/users${query ? `?q=${encodeURIComponent(query)}` : ""}`);
+    const r = await fetch(`/api/9bkp/users${query ? `?q=${encodeURIComponent(query)}` : ""}`);
     const d = await r.json();
     setUsers(d.users || []);
   }, []);
   useEffect(() => { load(); }, [load]);
 
   async function saveBalance(id: string, balance: number) {
-    await fetch(`/api/admin/users/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ balance }) });
+    await fetch(`/api/9bkp/users/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ balance }) });
     load(q);
   }
   async function del(id: string) {
-    if (!confirm("Excluir este usuário e todos os dados dele?")) return;
-    await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+    if (!confirm("Excluir este usuÃ¡rio e todos os dados dele?")) return;
+    await fetch(`/api/9bkp/users/${id}`, { method: "DELETE" });
     load(q);
   }
 
   return (
     <div>
-      <input className="adm-search" placeholder="Buscar por nome, email ou telefone…" value={q}
+      <input className="adm-search" placeholder="Buscar por nome, email ou telefoneâ€¦" value={q}
         onChange={(e) => { setQ(e.target.value); load(e.target.value); }} />
       <div className="adm-tablewrap">
         <table className="adm-table">
           <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Saldo</th><th>Cadastro</th><th></th></tr></thead>
           <tbody>
             {users.map((u) => <UserRowEdit key={u.id} user={u} onSave={saveBalance} onDelete={del} />)}
-            {users.length === 0 && <tr><td colSpan={6} style={{ color: "#9ca3af" }}>Nenhum usuário.</td></tr>}
+            {users.length === 0 && <tr><td colSpan={6} style={{ color: "#9ca3af" }}>Nenhum usuÃ¡rio.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -442,7 +442,7 @@ function UserRowEdit({ user, onSave, onDelete }: { user: UserRow; onSave: (id: s
     <tr>
       <td>{user.name}</td>
       <td>{user.email}</td>
-      <td>{user.phone || "—"}</td>
+      <td>{user.phone || "â€”"}</td>
       <td>
         <input className="adm-inline-input" type="number" step="0.01" value={bal} onChange={(e) => setBal(Number(e.target.value))} />
       </td>
@@ -459,21 +459,21 @@ function UserRowEdit({ user, onSave, onDelete }: { user: UserRow; onSave: (id: s
 function RecargasTab() {
   const [items, setItems] = useState<Recarga[]>([]);
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/recargas");
+    const r = await fetch("/api/9bkp/recargas");
     const d = await r.json();
     setItems(d.recargas || []);
   }, []);
   useEffect(() => { load(); }, [load]);
 
   async function setStatus(id: string, status: string) {
-    await fetch(`/api/admin/recargas/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+    await fetch(`/api/9bkp/recargas/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
     load();
   }
 
   return (
     <div className="adm-tablewrap">
       <table className="adm-table">
-        <thead><tr><th>Usuário</th><th>Email</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+        <thead><tr><th>UsuÃ¡rio</th><th>Email</th><th>Valor</th><th>Status</th><th>Data</th><th>AÃ§Ãµes</th></tr></thead>
         <tbody>
           {items.map((t) => (
             <tr key={t.id}>
@@ -499,22 +499,22 @@ function RecargasTab() {
 function SaquesTab() {
   const [items, setItems] = useState<Saque[]>([]);
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/saques");
+    const r = await fetch("/api/9bkp/saques");
     const d = await r.json();
     setItems(d.saques || []);
   }, []);
   useEffect(() => { load(); }, [load]);
 
   async function setStatus(id: string, status: string) {
-    if (status === "cancelled" && !confirm("Cancelar este saque e devolver o saldo ao usuário?")) return;
-    await fetch(`/api/admin/saques/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+    if (status === "cancelled" && !confirm("Cancelar este saque e devolver o saldo ao usuÃ¡rio?")) return;
+    await fetch(`/api/9bkp/saques/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
     load();
   }
 
   return (
     <div className="adm-tablewrap">
       <table className="adm-table">
-        <thead><tr><th>Usuário</th><th>Chave PIX</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+        <thead><tr><th>UsuÃ¡rio</th><th>Chave PIX</th><th>Valor</th><th>Status</th><th>Data</th><th>AÃ§Ãµes</th></tr></thead>
         <tbody>
           {items.map((t) => (
             <tr key={t.id}>
@@ -540,12 +540,12 @@ function SaquesTab() {
 function JogadasTab() {
   const [items, setItems] = useState<Play[]>([]);
   useEffect(() => {
-    fetch("/api/admin/plays").then((r) => r.json()).then((d) => setItems(d.plays || []));
+    fetch("/api/9bkp/plays").then((r) => r.json()).then((d) => setItems(d.plays || []));
   }, []);
   return (
     <div className="adm-tablewrap">
       <table className="adm-table">
-        <thead><tr><th>Usuário</th><th>Jogo</th><th>Aposta</th><th>Prêmio</th><th>Resultado</th><th>Data</th></tr></thead>
+        <thead><tr><th>UsuÃ¡rio</th><th>Jogo</th><th>Aposta</th><th>PrÃªmio</th><th>Resultado</th><th>Data</th></tr></thead>
         <tbody>
           {items.map((p) => (
             <tr key={p.id}>
@@ -570,7 +570,7 @@ function BannersTab() {
   const [novo, setNovo] = useState({ imageUrl: "", link: "", objectFit: "cover", sortOrder: 0 });
 
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/banners");
+    const r = await fetch("/api/9bkp/banners");
     const d = await r.json();
     setItems(d.banners || []);
   }, []);
@@ -578,17 +578,17 @@ function BannersTab() {
 
   async function add() {
     if (!novo.imageUrl) return;
-    await fetch("/api/admin/banners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
+    await fetch("/api/9bkp/banners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
     setNovo({ imageUrl: "", link: "", objectFit: "cover", sortOrder: 0 });
     load();
   }
   async function save(b: Banner) {
-    await fetch(`/api/admin/banners/${b.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+    await fetch(`/api/9bkp/banners/${b.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
     load();
   }
   async function del(id: string) {
     if (!confirm("Excluir este banner?")) return;
-    await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
+    await fetch(`/api/9bkp/banners/${id}`, { method: "DELETE" });
     load();
   }
 
@@ -598,7 +598,7 @@ function BannersTab() {
         <div className="adm-cardtitle">Novo banner</div>
         <div className="adm-field">
           <label>Imagem do banner</label>
-          <input className="adm-input" placeholder="Cole uma URL ou envie uma foto…" value={novo.imageUrl} onChange={(e) => setNovo({ ...novo, imageUrl: e.target.value })} />
+          <input className="adm-input" placeholder="Cole uma URL ou envie uma fotoâ€¦" value={novo.imageUrl} onChange={(e) => setNovo({ ...novo, imageUrl: e.target.value })} />
           <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
             <UploadBtn onPick={(d) => setNovo({ ...novo, imageUrl: d })} />
           </div>
@@ -681,14 +681,14 @@ function RaspadinhasTab() {
   const [items, setItems] = useState<GameRow[]>([]);
   const [novo, setNovo] = useState({ ...NOVO_GAME_DEFAULT });
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/games");
+    const r = await fetch("/api/9bkp/games");
     const d = await r.json();
     setItems(d.games || []);
   }, []);
   useEffect(() => { load(); }, [load]);
 
   async function save(g: GameRow) {
-    await fetch(`/api/admin/games/${g.id}`, {
+    await fetch(`/api/9bkp/games/${g.id}`, {
       method: "PUT", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ imageUrl: g.imageUrl, category: g.category, name: g.name, price: g.price, maxPrize: g.maxPrize, description: g.description }),
     });
@@ -697,13 +697,13 @@ function RaspadinhasTab() {
 
   async function del(id: string) {
     if (!confirm("Remover esta raspadinha?")) return;
-    await fetch(`/api/admin/games/${id}`, { method: "DELETE" });
+    await fetch(`/api/9bkp/games/${id}`, { method: "DELETE" });
     load();
   }
 
   async function add() {
     if (!novo.name) return;
-    await fetch("/api/admin/games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
+    await fetch("/api/9bkp/games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
     setNovo({ ...NOVO_GAME_DEFAULT });
     load();
   }
@@ -714,8 +714,8 @@ function RaspadinhasTab() {
         <div className="adm-cardtitle">Nova Raspadinha</div>
         <div className="adm-grid2">
           <div className="adm-field">
-            <label>Título</label>
-            <input className="adm-input" placeholder="Ex: Raspa Milionário" value={novo.name} onChange={(e) => setNovo({ ...novo, name: e.target.value })} />
+            <label>TÃ­tulo</label>
+            <input className="adm-input" placeholder="Ex: Raspa MilionÃ¡rio" value={novo.name} onChange={(e) => setNovo({ ...novo, name: e.target.value })} />
           </div>
           <div className="adm-field">
             <label>Imagem</label>
@@ -731,7 +731,7 @@ function RaspadinhasTab() {
             <input className="adm-input" type="number" step="0.01" value={novo.price} onChange={(e) => setNovo({ ...novo, price: Number(e.target.value) })} />
           </div>
           <div className="adm-field">
-            <label>Prêmio máx. (R$)</label>
+            <label>PrÃªmio mÃ¡x. (R$)</label>
             <input className="adm-input" type="number" value={novo.maxPrize} onChange={(e) => setNovo({ ...novo, maxPrize: Number(e.target.value) })} />
           </div>
         </div>
@@ -744,8 +744,8 @@ function RaspadinhasTab() {
             </select>
           </div>
           <div className="adm-field">
-            <label>Descrição</label>
-            <input className="adm-input" placeholder="Descrição breve" value={novo.description} onChange={(e) => setNovo({ ...novo, description: e.target.value })} />
+            <label>DescriÃ§Ã£o</label>
+            <input className="adm-input" placeholder="DescriÃ§Ã£o breve" value={novo.description} onChange={(e) => setNovo({ ...novo, description: e.target.value })} />
           </div>
         </div>
         <div className="adm-actions">
@@ -767,7 +767,7 @@ function PrizesSection({ gameId }: { gameId: string }) {
   const [novo, setNovo] = useState({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
 
   const load = useCallback(async () => {
-    const r = await fetch(`/api/admin/prizes?gameId=${gameId}`);
+    const r = await fetch(`/api/9bkp/prizes?gameId=${gameId}`);
     const d = await r.json();
     setPrizes(d.prizes || []);
   }, [gameId]);
@@ -776,35 +776,35 @@ function PrizesSection({ gameId }: { gameId: string }) {
 
   async function add() {
     if (!novo.label) return;
-    await fetch("/api/admin/prizes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...novo, gameId }) });
+    await fetch("/api/9bkp/prizes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...novo, gameId }) });
     setNovo({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
     load();
   }
   async function del(id: string) {
-    await fetch(`/api/admin/prizes/${id}`, { method: "DELETE" });
+    await fetch(`/api/9bkp/prizes/${id}`, { method: "DELETE" });
     load();
   }
   async function update(p: GamePrize) {
-    await fetch(`/api/admin/prizes/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
+    await fetch(`/api/9bkp/prizes/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
     load();
   }
 
   return (
     <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: "1rem" }}>
       <button className="adm-btn" style={{ background: "rgba(22,199,91,.1)", color: "#16C75B", border: "1px solid rgba(22,199,91,.2)" }} onClick={() => setOpen(o => !o)}>
-        <i className="bi bi-gift" /> {open ? "Fechar Prêmios" : `Gerenciar Prêmios (${prizes.length || "?"})`}
+        <i className="bi bi-gift" /> {open ? "Fechar PrÃªmios" : `Gerenciar PrÃªmios (${prizes.length || "?"})`}
       </button>
       {open && (
         <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: ".75rem" }}>
-          {/* Novo prêmio */}
+          {/* Novo prÃªmio */}
           <div style={{ background: "rgba(22,199,91,.05)", border: "1px solid rgba(22,199,91,.12)", borderRadius: 10, padding: ".75rem" }}>
-            <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo Prêmio</div>
+            <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo PrÃªmio</div>
             <div className="adm-grid2">
-              <div className="adm-field"><label>Nome do prêmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
+              <div className="adm-field"><label>Nome do prÃªmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
               <div className="adm-field"><label>Valor (R$)</label><input className="adm-input" type="number" value={novo.value} onChange={e => setNovo({ ...novo, value: Number(e.target.value) })} /></div>
             </div>
             <div className="adm-field" style={{ marginBottom: ".5rem" }}>
-              <label>Foto do prêmio</label>
+              <label>Foto do prÃªmio</label>
               <input className="adm-input" placeholder="https://... ou envie uma imagem" value={novo.imageUrl} onChange={e => setNovo({ ...novo, imageUrl: e.target.value })} />
               <div style={{ marginTop: ".4rem" }}><UploadBtn onPick={d => setNovo({ ...novo, imageUrl: d })} asPng /></div>
             </div>
@@ -853,12 +853,12 @@ function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: Ga
         <img className="adm-preview" src={g.imageUrl || ""} alt="" />
         <div>
           <div style={{ fontWeight: 800 }}>{g.name}</div>
-          <div className="adm-pagesub">id: {g.id} · prêmio máx. R$ {g.maxPrize.toLocaleString("pt-BR")}</div>
+          <div className="adm-pagesub">id: {g.id} Â· prÃªmio mÃ¡x. R$ {g.maxPrize.toLocaleString("pt-BR")}</div>
         </div>
       </div>
       <div className="adm-grid2">
         <div className="adm-field">
-          <label>Título</label>
+          <label>TÃ­tulo</label>
           <input className="adm-input" value={g.name} onChange={(e) => setG({ ...g, name: e.target.value })} />
         </div>
         <div className="adm-field">
@@ -875,7 +875,7 @@ function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: Ga
           <input className="adm-input" type="number" step="0.01" value={g.price} onChange={(e) => setG({ ...g, price: Number(e.target.value) })} />
         </div>
         <div className="adm-field">
-          <label>Prêmio máx. (R$)</label>
+          <label>PrÃªmio mÃ¡x. (R$)</label>
           <input className="adm-input" type="number" value={g.maxPrize} onChange={(e) => setG({ ...g, maxPrize: Number(e.target.value) })} />
         </div>
       </div>
@@ -888,7 +888,7 @@ function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: Ga
           </select>
         </div>
         <div className="adm-field">
-          <label>Descrição</label>
+          <label>DescriÃ§Ã£o</label>
           <textarea className="adm-textarea" value={g.description} onChange={(e) => setG({ ...g, description: e.target.value })} />
         </div>
       </div>
@@ -912,7 +912,7 @@ function GanhadoresTab() {
   const [novo, setNovo] = useState({ imageUrl: "", name: "", value: 0, badge: "PIX", minutesAgo: 5, sortOrder: 0 });
 
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/winners");
+    const r = await fetch("/api/9bkp/winners");
     const d = await r.json();
     setItems(d.winners || []);
   }, []);
@@ -920,17 +920,17 @@ function GanhadoresTab() {
 
   async function add() {
     if (!novo.name) return;
-    await fetch("/api/admin/winners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
+    await fetch("/api/9bkp/winners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
     setNovo({ imageUrl: "", name: "", value: 0, badge: "PIX", minutesAgo: 5, sortOrder: 0 });
     load();
   }
   async function save(w: Winner) {
-    await fetch(`/api/admin/winners/${w.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(w) });
+    await fetch(`/api/9bkp/winners/${w.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(w) });
     load();
   }
   async function del(id: string) {
     if (!confirm("Excluir este ganhador?")) return;
-    await fetch(`/api/admin/winners/${id}`, { method: "DELETE" });
+    await fetch(`/api/9bkp/winners/${id}`, { method: "DELETE" });
     load();
   }
 
@@ -942,7 +942,7 @@ function GanhadoresTab() {
         <div className="adm-cardtitle">Novo ganhador</div>
         <div className="adm-grid2">
           <div className="adm-field">
-            <label>URL da foto do prêmio</label>
+            <label>URL da foto do prÃªmio</label>
             <input className="adm-input" placeholder="https://... ou envie abaixo" value={novo.imageUrl} onChange={(e) => setNovo({ ...novo, imageUrl: e.target.value })} />
             <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
               <UploadBtn onPick={(d) => setNovo({ ...novo, imageUrl: d })} removeDarkBg />
@@ -962,11 +962,11 @@ function GanhadoresTab() {
             <label>Badge</label>
             <select className="adm-select" value={novo.badge} onChange={(e) => setNovo({ ...novo, badge: e.target.value })}>
               <option value="PIX">PIX</option>
-              <option value="PREMIO">PRÊMIO</option>
+              <option value="PREMIO">PRÃŠMIO</option>
             </select>
           </div>
           <div className="adm-field">
-            <label>Há quantos min</label>
+            <label>HÃ¡ quantos min</label>
             <input className="adm-input" type="number" value={novo.minutesAgo} onChange={(e) => setNovo({ ...novo, minutesAgo: Number(e.target.value) })} />
           </div>
           <div className="adm-field">
@@ -991,7 +991,7 @@ function PremiosDistribuidos() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch("/api/admin/settings").then((r) => r.json()).then((d) => {
+    fetch("/api/9bkp/settings").then((r) => r.json()).then((d) => {
       setValue(String(d.winnersTotal ?? 0));
       setLoaded(true);
     });
@@ -999,7 +999,7 @@ function PremiosDistribuidos() {
 
   async function save() {
     const num = parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
-    await fetch("/api/admin/settings", {
+    await fetch("/api/9bkp/settings", {
       method: "PUT", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ winnersTotal: num }),
     });
@@ -1009,7 +1009,7 @@ function PremiosDistribuidos() {
 
   return (
     <div className="adm-card new">
-      <div className="adm-cardtitle">Prêmios Distribuídos (total exibido na home)</div>
+      <div className="adm-cardtitle">PrÃªmios DistribuÃ­dos (total exibido na home)</div>
       <div className="adm-grid2">
         <div className="adm-field">
           <label>Valor (R$)</label>
@@ -1064,11 +1064,11 @@ function WinnerRow({ winner, onSave, onDelete }: { winner: Winner; onSave: (w: W
           <label>Badge</label>
           <select className="adm-select" value={w.badge} onChange={(e) => setW({ ...w, badge: e.target.value })}>
             <option value="PIX">PIX</option>
-            <option value="PREMIO">PRÊMIO</option>
+            <option value="PREMIO">PRÃŠMIO</option>
           </select>
         </div>
         <div className="adm-field">
-          <label>Há min</label>
+          <label>HÃ¡ min</label>
           <input className="adm-input" type="number" value={w.minutesAgo} onChange={(e) => setW({ ...w, minutesAgo: Number(e.target.value) })} />
         </div>
         <div className="adm-field">

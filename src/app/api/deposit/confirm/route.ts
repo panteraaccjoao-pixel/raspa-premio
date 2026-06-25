@@ -5,9 +5,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
+  // Bloqueado em produção E requer token dev para evitar exposição acidental em staging.
+  const isProduction = process.env.NODE_ENV === "production";
+  const devToken = process.env.DEV_CONFIRM_TOKEN;
+  const providedToken = req.headers.get("x-dev-token");
+
+  if (isProduction || !devToken || providedToken !== devToken) {
     return NextResponse.json({ error: "Indisponível" }, { status: 403 });
   }
+
   const { txId } = await req.json();
 
   const tx = await prisma.transaction.findUnique({ where: { id: txId } });
