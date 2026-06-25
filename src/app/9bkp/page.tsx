@@ -1,6 +1,6 @@
 ﻿import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/9bkp-auth";
-import AdminPanel from "@/components/9bkpPanel";
+import AdminPanel from "@/components/AdminPanel";
 
 export const dynamic = "force-dynamic";
 
