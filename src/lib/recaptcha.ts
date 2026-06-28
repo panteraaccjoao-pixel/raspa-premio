@@ -18,8 +18,12 @@ export async function verifyRecaptcha(token: string | undefined | null): Promise
       body: `secret=${encodeURIComponent(secret)}&response=${encodeURIComponent(token)}`,
     });
     const data = await res.json();
+    if (!data.success) {
+      console.error("[recaptcha] falhou:", JSON.stringify(data));
+    }
     return !!data.success;
-  } catch {
+  } catch (e) {
+    console.error("[recaptcha] erro fetch:", e);
     return false;
   }
 }
