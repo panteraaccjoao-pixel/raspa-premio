@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ScratchCard from "@/components/ScratchCard";
 import type { Game } from "@/lib/games";
+import { fbq } from "@/lib/pixel";
 
 /* Prize showcase items per game */
 const PRIZE_ITEMS: Record<string, { label: string; value: number; icon: string }[]> = {
@@ -97,6 +98,7 @@ export default function GameClient({ game, dbPrizes }: { game: Game; dbPrizes?: 
     // Só a aposta foi debitada aqui; o prêmio é creditado ao revelar a vitória.
     setUser(u => u ? { ...u, balance: data.balance } : u);
     window.dispatchEvent(new Event("balance:update"));
+    fbq("Purchase", { value: game.price, currency: "BRL", content_name: game.name });
     setState("playing");
   }
 

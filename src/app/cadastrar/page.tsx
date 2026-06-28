@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Recaptcha from "@/components/Recaptcha";
+import { fbq } from "@/lib/pixel";
 
 const RECAPTCHA_ON = !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
@@ -36,8 +37,10 @@ export default function RegisterPage() {
     });
     const data = await res.json();
     if (data.needsVerification) {
+      fbq("CompleteRegistration");
       router.push(`/verificar?email=${encodeURIComponent(data.email)}`);
     } else if (data.ok) {
+      fbq("CompleteRegistration");
       router.push("/");
     } else {
       setError(data.error || "Erro ao cadastrar");

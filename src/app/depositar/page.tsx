@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { fbq } from "@/lib/pixel";
 
 const QUICK_AMOUNTS = [10, 25, 50, 100, 200, 500, 1000];
 const MIN = 10;
@@ -37,6 +38,7 @@ export default function DepositPage() {
         if (d.status === "completed") {
           clearInterval(interval);
           setConfirmed(true);
+          fbq("Purchase", { value: pix!.amount, currency: "BRL" });
           window.dispatchEvent(new Event("balance:update"));
           setTimeout(() => router.push("/jogar"), 2000);
         }
@@ -78,8 +80,11 @@ export default function DepositPage() {
     });
     const data = await res.json();
     setLoading(false);
-    if (res.ok) { setPix(data); setStep(2); }
-    else setDepError(data.error || "Erro ao gerar PIX");
+    if (res.ok) {
+      setPix(data);
+      setStep(2);
+      fbq("InitiateCheckout", { value: finalAmount, currency: "BRL" });
+    } else setDepError(data.error || "Erro ao gerar PIX");
   }
 
   async function confirmDev() {
