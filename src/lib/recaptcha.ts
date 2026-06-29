@@ -10,7 +10,7 @@ export async function verifyRecaptcha(token: string | undefined | null): Promise
     }
     return true; // permite apenas em desenvolvimento
   }
-  if (!token || typeof token !== "string" || token.length > 2048) {
+  if (!token || typeof token !== "string" || token.length > 4096) {
     console.error("[recaptcha] token inválido:", { token: typeof token, length: (token as string)?.length });
     return false;
   }
