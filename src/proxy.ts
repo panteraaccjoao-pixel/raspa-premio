@@ -14,8 +14,14 @@ export function proxy(request: NextRequest) {
     const origin = request.headers.get("origin");
     // Sem origin = same-origin (curl, SSR) → permite.
     if (origin) {
-      const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL;
-      if (!allowedOrigin || origin !== allowedOrigin) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+      const host = request.headers.get("host") ?? "";
+      const allowedOrigins = [
+        appUrl,
+        `https://${host}`,
+        `http://${host}`,
+      ].filter(Boolean);
+      if (!allowedOrigins.includes(origin)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
