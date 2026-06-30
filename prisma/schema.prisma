@@ -67,6 +67,17 @@ model GameSetting {
   active      Boolean @default(true)
 }
 
+// Catálogo global de prêmios — cadastre uma vez e reutilize em várias raspadinhas
+// (evita reenviar a mesma imagem/nome/valor em cada jogo).
+model Prize {
+  id        String   @id @default(cuid())
+  label     String
+  value     Float    @default(0)
+  imageUrl  String   @default("")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
 // Prêmios configuráveis por jogo — exibidos na vitrine da raspadinha
 model GamePrize {
   id        String  @id @default(cuid())

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-type Tab = "dashboard" | "usuarios" | "recargas" | "saques" | "jogadas" | "banners" | "raspadinhas" | "ganhadores";
+type Tab = "dashboard" | "usuarios" | "recargas" | "saques" | "jogadas" | "banners" | "raspadinhas" | "ganhadores" | "premios";
 
 interface Banner { id: string; imageUrl: string; link: string | null; objectFit: string; sortOrder: number; active: boolean; }
 interface GameRow { id: string; name: string; price: number; maxPrize: number; description: string; imageUrl: string; category: string; }
@@ -22,6 +22,7 @@ const NAV: { key: Tab; label: string; icon: string }[] = [
   { key: "banners", label: "Banners", icon: "bi-images" },
   { key: "raspadinhas", label: "Raspadinhas", icon: "bi-grid-3x3-gap-fill" },
   { key: "ganhadores", label: "Ganhadores", icon: "bi-trophy-fill" },
+  { key: "premios", label: "Catálogo de Prêmios", icon: "bi-gift-fill" },
 ];
 
 const BRL = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
@@ -259,11 +260,12 @@ export default function AdminPanel() {
     dashboard: "Visão geral da plataforma",
     usuarios: "Gerencie contas e saldos",
     recargas: "Depósitos via PIX dos Usuários",
-    saques: "Pedidos de saque â€” pague o PIX e marque como pago",
+    saques: "Pedidos de saque — pague o PIX e marque como pago",
     jogadas: "Histórico de partidas",
     banners: "Gerencie as imagens do carrossel da home",
     raspadinhas: "Edite imagem, Título, valor e Descrição dos produtos",
     ganhadores: "Configure a lista de últimos ganhadores",
+    premios: "Cadastre os prêmios uma vez e reutilize em várias raspadinhas",
   }[tab];
 
   return (
@@ -305,6 +307,7 @@ export default function AdminPanel() {
         {tab === "banners" && <BannersTab />}
         {tab === "raspadinhas" && <RaspadinhasTab />}
         {tab === "ganhadores" && <GanhadoresTab />}
+        {tab === "premios" && <PremiosLibraryTab />}
       </main>
     </div>
   );
@@ -760,11 +763,90 @@ function RaspadinhasTab() {
 }
 
 interface GamePrize { id: string; label: string; value: number; imageUrl: string; sortOrder: number; active: boolean; }
+interface LibPrize { id: string; label: string; value: number; imageUrl: string; sortOrder: number; }
+
+/* ---------------- Catálogo global de Prêmios ---------------- */
+function PremiosLibraryTab() {
+  const [prizes, setPrizes] = useState<LibPrize[]>([]);
+  const [novo, setNovo] = useState({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
+
+  const load = useCallback(async () => {
+    const r = await fetch("/api/9bkp/prize-library");
+    const d = await r.json();
+    setPrizes(d.prizes || []);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function add() {
+    if (!novo.label) return;
+    await fetch("/api/9bkp/prize-library", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
+    setNovo({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
+    load();
+  }
+  async function del(id: string) {
+    await fetch(`/api/9bkp/prize-library/${id}`, { method: "DELETE" });
+    load();
+  }
+  async function update(p: LibPrize) {
+    await fetch(`/api/9bkp/prize-library/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
+    load();
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
+      <div style={{ background: "rgba(22,199,91,.05)", border: "1px solid rgba(22,199,91,.12)", borderRadius: 10, padding: ".75rem" }}>
+        <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo Prêmio no Catálogo</div>
+        <div className="adm-grid2">
+          <div className="adm-field"><label>Nome do Prêmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
+          <div className="adm-field"><label>Valor (R$)</label><input className="adm-input" type="number" value={novo.value} onChange={e => setNovo({ ...novo, value: Number(e.target.value) })} /></div>
+        </div>
+        <div className="adm-field" style={{ marginBottom: ".5rem" }}>
+          <label>Foto do Prêmio</label>
+          <input className="adm-input" placeholder="https://... ou envie uma imagem" value={novo.imageUrl} onChange={e => setNovo({ ...novo, imageUrl: e.target.value })} />
+          <div style={{ marginTop: ".4rem" }}><UploadBtn onPick={d => setNovo({ ...novo, imageUrl: d })} asPng /></div>
+        </div>
+        {novo.imageUrl && <img src={novo.imageUrl} alt="" style={{ height: 60, borderRadius: 6, marginBottom: ".5rem", objectFit: "cover" }} />}
+        <button className="adm-btn" onClick={add}><i className="bi bi-plus-lg" /> Adicionar ao Catálogo</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: ".75rem" }}>
+        {prizes.map(p => <LibPrizeRowEdit key={p.id} prize={p} onSave={update} onDelete={del} />)}
+      </div>
+      {prizes.length === 0 && <div className="adm-pagesub">Nenhum prêmio cadastrado ainda.</div>}
+    </div>
+  );
+}
+
+function LibPrizeRowEdit({ prize, onSave, onDelete }: { prize: LibPrize; onSave: (p: LibPrize) => void; onDelete: (id: string) => void; }) {
+  const [p, setP] = useState(prize);
+  useEffect(() => setP(prize), [prize]);
+  return (
+    <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, padding: ".65rem .75rem", display: "flex", flexDirection: "column", gap: ".5rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
+        {p.imageUrl && <img src={p.imageUrl} alt="" style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />}
+        <div style={{ flex: 1 }}>
+          <input className="adm-input" value={p.label} onChange={e => setP({ ...p, label: e.target.value })} style={{ marginBottom: ".3rem" }} />
+          <input className="adm-input" type="number" value={p.value} onChange={e => setP({ ...p, value: Number(e.target.value) })} placeholder="Valor R$" />
+        </div>
+      </div>
+      <div className="adm-field">
+        <input className="adm-input" placeholder="URL da foto" value={p.imageUrl} onChange={e => setP({ ...p, imageUrl: e.target.value })} />
+        <div style={{ marginTop: ".3rem" }}><UploadBtn onPick={d => setP({ ...p, imageUrl: d })} asPng /></div>
+      </div>
+      <div className="adm-actions">
+        <button className="adm-btn" onClick={() => onSave(p)}><i className="bi bi-check-lg" /> Salvar</button>
+        <button className="adm-btn danger" onClick={() => onDelete(p.id)}><i className="bi bi-trash" /> Remover</button>
+      </div>
+    </div>
+  );
+}
 
 function PrizesSection({ gameId }: { gameId: string }) {
   const [prizes, setPrizes] = useState<GamePrize[]>([]);
+  const [lib, setLib] = useState<LibPrize[]>([]);
   const [open, setOpen] = useState(false);
   const [novo, setNovo] = useState({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
+  const [libPick, setLibPick] = useState("");
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/9bkp/prizes?gameId=${gameId}`);
@@ -772,12 +854,25 @@ function PrizesSection({ gameId }: { gameId: string }) {
     setPrizes(d.prizes || []);
   }, [gameId]);
 
-  useEffect(() => { if (open) load(); }, [open, load]);
+  const loadLib = useCallback(async () => {
+    const r = await fetch("/api/9bkp/prize-library");
+    const d = await r.json();
+    setLib(d.prizes || []);
+  }, []);
+
+  useEffect(() => { if (open) { load(); loadLib(); } }, [open, load, loadLib]);
+
+  function pickFromLib(id: string) {
+    setLibPick(id);
+    const p = lib.find(l => l.id === id);
+    if (p) setNovo({ label: p.label, value: p.value, imageUrl: p.imageUrl, sortOrder: 0 });
+  }
 
   async function add() {
     if (!novo.label) return;
     await fetch("/api/9bkp/prizes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...novo, gameId }) });
     setNovo({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
+    setLibPick("");
     load();
   }
   async function del(id: string) {
@@ -799,6 +894,15 @@ function PrizesSection({ gameId }: { gameId: string }) {
           {/* Novo Prêmio */}
           <div style={{ background: "rgba(22,199,91,.05)", border: "1px solid rgba(22,199,91,.12)", borderRadius: 10, padding: ".75rem" }}>
             <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo Prêmio</div>
+            {lib.length > 0 && (
+              <div className="adm-field" style={{ marginBottom: ".5rem" }}>
+                <label>Usar do Catálogo</label>
+                <select className="adm-input" value={libPick} onChange={e => pickFromLib(e.target.value)}>
+                  <option value="">— escolher prêmio cadastrado —</option>
+                  {lib.map(l => <option key={l.id} value={l.id}>{l.label} (R$ {l.value.toLocaleString("pt-BR")})</option>)}
+                </select>
+              </div>
+            )}
             <div className="adm-grid2">
               <div className="adm-field"><label>Nome do Prêmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
               <div className="adm-field"><label>Valor (R$)</label><input className="adm-input" type="number" value={novo.value} onChange={e => setNovo({ ...novo, value: Number(e.target.value) })} /></div>
