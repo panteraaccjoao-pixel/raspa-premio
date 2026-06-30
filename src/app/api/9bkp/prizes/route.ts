@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const numValue = Number(value);
   if (!Number.isFinite(numValue) || numValue < 0)
     return NextResponse.json({ error: "value deve ser número não-negativo" }, { status: 400 });
-  if (imageUrl !== undefined && imageUrl !== null && (typeof imageUrl !== "string" || imageUrl.length > 2048))
+  if (imageUrl !== undefined && imageUrl !== null && (typeof imageUrl !== "string" || imageUrl.length > 2_000_000))
     return NextResponse.json({ error: "imageUrl inválida" }, { status: 400 });
 
   const id = `gp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
