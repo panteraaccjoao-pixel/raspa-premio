@@ -379,6 +379,10 @@ export default function DepositPage() {
                   </div>
                 )}
 
+                <div style={{ color: "#16C75B", fontSize: "0.8rem", fontWeight: 600, textAlign: "center", marginBottom: "0.75rem" }}>
+                  ⚡ Saldo creditado automaticamente em poucos segundos após o pagamento.
+                </div>
+
                 <button
                   className={`dep-submit${finalAmount >= MIN ? " ready" : " disabled"}`}
                   onClick={finalAmount >= MIN ? goToPix : undefined}
@@ -430,7 +434,7 @@ export default function DepositPage() {
                     </div>
                   ))}
                   <div style={{color:"#16C75B",fontSize:"0.8rem",fontWeight:600,marginTop:"0.6rem"}}>
-                    Após o pagamento, seu saldo será creditado automaticamente!
+                    ⚡ Saldo creditado automaticamente em poucos segundos após o pagamento.
                   </div>
                 </div>
 
@@ -462,7 +466,7 @@ export default function DepositPage() {
                   <div>
                     <div style={{color:"#16C75B", fontWeight:700, fontSize:"0.85rem"}}>Aguardando pagamento</div>
                     <div style={{color:"#9ca3af", fontSize:"0.75rem", marginTop:"0.1rem"}}>
-                      O saldo será creditado automaticamente após a confirmação
+                      ⚡ Saldo creditado automaticamente em poucos segundos após o pagamento
                     </div>
                   </div>
                 </div>
