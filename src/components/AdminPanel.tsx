@@ -1016,6 +1016,8 @@ function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: Ga
 function GanhadoresTab() {
   const [items, setItems] = useState<Winner[]>([]);
   const [novo, setNovo] = useState({ imageUrl: "", name: "", value: 0, badge: "PIX", minutesAgo: 5, sortOrder: 0 });
+  const [lib, setLib] = useState<LibPrize[]>([]);
+  const [libPick, setLibPick] = useState("");
 
   const load = useCallback(async () => {
     const r = await fetch("/api/9bkp/winners");
@@ -1023,6 +1025,16 @@ function GanhadoresTab() {
     setItems(d.winners || []);
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    fetch("/api/9bkp/prize-library").then(r => r.json()).then(d => setLib(d.prizes || []));
+  }, []);
+
+  function pickFromLib(id: string) {
+    setLibPick(id);
+    const p = lib.find(l => l.id === id);
+    if (p) setNovo(n => ({ ...n, imageUrl: p.imageUrl, value: p.value, badge: "PREMIO" }));
+  }
 
   async function add() {
     if (!novo.name) return;
@@ -1046,6 +1058,17 @@ function GanhadoresTab() {
 
       <div className="adm-card new">
         <div className="adm-cardtitle">Novo ganhador</div>
+        <div className="adm-field" style={{ marginBottom: ".75rem" }}>
+          <label>Usar do Catálogo</label>
+          {lib.length > 0 ? (
+            <select className="adm-select" value={libPick} onChange={(e) => pickFromLib(e.target.value)}>
+              <option value="">— escolher prêmio cadastrado —</option>
+              {lib.map(l => <option key={l.id} value={l.id}>{l.label} (R$ {l.value.toLocaleString("pt-BR")})</option>)}
+            </select>
+          ) : (
+            <div className="adm-pagesub">Nenhum prêmio no catálogo ainda — cadastre em &quot;Catálogo de Prêmios&quot; no menu lateral.</div>
+          )}
+        </div>
         <div className="adm-grid2">
           <div className="adm-field">
             <label>URL da foto do Prêmio</label>
