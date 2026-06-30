@@ -780,7 +780,12 @@ function PremiosLibraryTab() {
 
   async function add() {
     if (!novo.label) return;
-    await fetch("/api/9bkp/prize-library", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
+    const r = await fetch("/api/9bkp/prize-library", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(novo) });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      alert(d.error || `Erro ao adicionar (status ${r.status})`);
+      return;
+    }
     setNovo({ label: "", value: 0, imageUrl: "", sortOrder: 0 });
     load();
   }
