@@ -894,15 +894,17 @@ function PrizesSection({ gameId }: { gameId: string }) {
           {/* Novo Prêmio */}
           <div style={{ background: "rgba(22,199,91,.05)", border: "1px solid rgba(22,199,91,.12)", borderRadius: 10, padding: ".75rem" }}>
             <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo Prêmio</div>
-            {lib.length > 0 && (
-              <div className="adm-field" style={{ marginBottom: ".5rem" }}>
-                <label>Usar do Catálogo</label>
+            <div className="adm-field" style={{ marginBottom: ".5rem" }}>
+              <label>Usar do Catálogo</label>
+              {lib.length > 0 ? (
                 <select className="adm-input" value={libPick} onChange={e => pickFromLib(e.target.value)}>
                   <option value="">— escolher prêmio cadastrado —</option>
                   {lib.map(l => <option key={l.id} value={l.id}>{l.label} (R$ {l.value.toLocaleString("pt-BR")})</option>)}
                 </select>
-              </div>
-            )}
+              ) : (
+                <div className="adm-pagesub">Nenhum prêmio no catálogo ainda — cadastre em &quot;Catálogo de Prêmios&quot; no menu lateral.</div>
+              )}
+            </div>
             <div className="adm-grid2">
               <div className="adm-field"><label>Nome do Prêmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
               <div className="adm-field"><label>Valor (R$)</label><input className="adm-input" type="number" value={novo.value} onChange={e => setNovo({ ...novo, value: Number(e.target.value) })} /></div>
