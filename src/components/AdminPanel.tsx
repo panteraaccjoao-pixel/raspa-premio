@@ -15,7 +15,7 @@ interface Play { id: string; user: string; game: string; betAmount: number; priz
 
 const NAV: { key: Tab; label: string; icon: string }[] = [
   { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
-  { key: "usuarios", label: "UsuÃ¡rios", icon: "bi-people-fill" },
+  { key: "usuarios", label: "Usuários", icon: "bi-people-fill" },
   { key: "recargas", label: "Recargas", icon: "bi-wallet2" },
   { key: "saques", label: "Saques", icon: "bi-cash-stack" },
   { key: "jogadas", label: "Jogadas", icon: "bi-controller" },
@@ -27,7 +27,7 @@ const NAV: { key: Tab; label: string; icon: string }[] = [
 const BRL = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
-// Converte um arquivo de imagem em data-URI, redimensionando para nÃ£o pesar no banco
+// Converte um arquivo de imagem em data-URI, redimensionando para não pesar no banco
 function fileToDataUrl(file: File, maxW = 1920, removeDarkBg = false, asPng = false): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -256,14 +256,14 @@ export default function AdminPanel() {
   }
 
   const sub = {
-    dashboard: "VisÃ£o geral da plataforma",
+    dashboard: "Visão geral da plataforma",
     usuarios: "Gerencie contas e saldos",
-    recargas: "DepÃ³sitos via PIX dos usuÃ¡rios",
+    recargas: "Depósitos via PIX dos Usuários",
     saques: "Pedidos de saque â€” pague o PIX e marque como pago",
-    jogadas: "HistÃ³rico de partidas",
+    jogadas: "Histórico de partidas",
     banners: "Gerencie as imagens do carrossel da home",
-    raspadinhas: "Edite imagem, tÃ­tulo, valor e descriÃ§Ã£o dos produtos",
-    ganhadores: "Configure a lista de Ãºltimos ganhadores",
+    raspadinhas: "Edite imagem, Título, valor e Descrição dos produtos",
+    ganhadores: "Configure a lista de últimos ganhadores",
   }[tab];
 
   return (
@@ -275,7 +275,7 @@ export default function AdminPanel() {
       <aside className="adm-side">
         <div className="adm-logo">
           <span className="box"><i className="bi bi-dice-3-fill" /></span>
-          RaspaPrÃªmio
+          RaspaPrêmio
         </div>
         <nav className="adm-nav">
           {NAV.map((n) => (
@@ -333,13 +333,13 @@ function DashboardTab() {
   if (!s) return <div className="adm-pagesub">Carregandoâ€¦</div>;
 
   const cards = [
-    { lbl: "UsuÃ¡rios", icon: "bi-people", val: String(s.usuarios), cls: "" },
-    { lbl: "Faturamento (depÃ³sitos)", icon: "bi-cash-stack", val: BRL(s.faturamento), cls: "green" },
-    { lbl: "Margem (apostas - prÃªmios)", icon: "bi-graph-up-arrow", val: BRL(s.margem), cls: s.margem >= 0 ? "green" : "red" },
+    { lbl: "Usuários", icon: "bi-people", val: String(s.usuarios), cls: "" },
+    { lbl: "Faturamento (Depósitos)", icon: "bi-cash-stack", val: BRL(s.faturamento), cls: "green" },
+    { lbl: "Margem (apostas - Prêmios)", icon: "bi-graph-up-arrow", val: BRL(s.margem), cls: s.margem >= 0 ? "green" : "red" },
     { lbl: "Recargas pendentes", icon: "bi-hourglass-split", val: String(s.depositosPendentes), cls: "" },
     { lbl: "Jogadas", icon: "bi-controller", val: String(s.jogadas), cls: "" },
     { lbl: "Total apostado", icon: "bi-coin", val: BRL(s.totalApostado), cls: "" },
-    { lbl: "PrÃªmios pagos", icon: "bi-trophy", val: BRL(s.totalPremios), cls: "red" },
+    { lbl: "Prêmios pagos", icon: "bi-trophy", val: BRL(s.totalPremios), cls: "red" },
     { lbl: "Saldo em contas", icon: "bi-wallet2", val: BRL(s.saldoTotal), cls: "" },
   ];
 
@@ -356,7 +356,7 @@ function DashboardTab() {
 
       <div className="adm-grid2">
         <div>
-          <div className="adm-cardtitle">Novos usuÃ¡rios</div>
+          <div className="adm-cardtitle">Novos Usuários</div>
           <div className="adm-tablewrap">
             <table className="adm-table">
               <thead><tr><th>Nome</th><th>Email</th><th>Data</th></tr></thead>
@@ -373,7 +373,7 @@ function DashboardTab() {
           <div className="adm-cardtitle">Recargas recentes</div>
           <div className="adm-tablewrap">
             <table className="adm-table">
-              <thead><tr><th>UsuÃ¡rio</th><th>Valor</th><th>Status</th></tr></thead>
+              <thead><tr><th>Usuário</th><th>Valor</th><th>Status</th></tr></thead>
               <tbody>
                 {s.recentDeps.map((d) => (
                   <tr key={d.id}>
@@ -397,7 +397,7 @@ function StatusPill({ status }: { status: string }) {
   return <span className="adm-pill pend">Pendente</span>;
 }
 
-/* ---------------- UsuÃ¡rios ---------------- */
+/* ---------------- Usuários ---------------- */
 function UsuariosTab() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [q, setQ] = useState("");
@@ -413,7 +413,7 @@ function UsuariosTab() {
     load(q);
   }
   async function del(id: string) {
-    if (!confirm("Excluir este usuÃ¡rio e todos os dados dele?")) return;
+    if (!confirm("Excluir este Usuário e todos os dados dele?")) return;
     await fetch(`/api/9bkp/users/${id}`, { method: "DELETE" });
     load(q);
   }
@@ -427,7 +427,7 @@ function UsuariosTab() {
           <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Saldo</th><th>Cadastro</th><th></th></tr></thead>
           <tbody>
             {users.map((u) => <UserRowEdit key={u.id} user={u} onSave={saveBalance} onDelete={del} />)}
-            {users.length === 0 && <tr><td colSpan={6} style={{ color: "#9ca3af" }}>Nenhum usuÃ¡rio.</td></tr>}
+            {users.length === 0 && <tr><td colSpan={6} style={{ color: "#9ca3af" }}>Nenhum Usuário.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -473,7 +473,7 @@ function RecargasTab() {
   return (
     <div className="adm-tablewrap">
       <table className="adm-table">
-        <thead><tr><th>UsuÃ¡rio</th><th>Email</th><th>Valor</th><th>Status</th><th>Data</th><th>AÃ§Ãµes</th></tr></thead>
+        <thead><tr><th>Usuário</th><th>Email</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
         <tbody>
           {items.map((t) => (
             <tr key={t.id}>
@@ -506,7 +506,7 @@ function SaquesTab() {
   useEffect(() => { load(); }, [load]);
 
   async function setStatus(id: string, status: string) {
-    if (status === "cancelled" && !confirm("Cancelar este saque e devolver o saldo ao usuÃ¡rio?")) return;
+    if (status === "cancelled" && !confirm("Cancelar este saque e devolver o saldo ao Usuário?")) return;
     await fetch(`/api/9bkp/saques/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
     load();
   }
@@ -514,7 +514,7 @@ function SaquesTab() {
   return (
     <div className="adm-tablewrap">
       <table className="adm-table">
-        <thead><tr><th>UsuÃ¡rio</th><th>Chave PIX</th><th>Valor</th><th>Status</th><th>Data</th><th>AÃ§Ãµes</th></tr></thead>
+        <thead><tr><th>Usuário</th><th>Chave PIX</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
         <tbody>
           {items.map((t) => (
             <tr key={t.id}>
@@ -545,7 +545,7 @@ function JogadasTab() {
   return (
     <div className="adm-tablewrap">
       <table className="adm-table">
-        <thead><tr><th>UsuÃ¡rio</th><th>Jogo</th><th>Aposta</th><th>PrÃªmio</th><th>Resultado</th><th>Data</th></tr></thead>
+        <thead><tr><th>Usuário</th><th>Jogo</th><th>Aposta</th><th>Prêmio</th><th>Resultado</th><th>Data</th></tr></thead>
         <tbody>
           {items.map((p) => (
             <tr key={p.id}>
@@ -714,8 +714,8 @@ function RaspadinhasTab() {
         <div className="adm-cardtitle">Nova Raspadinha</div>
         <div className="adm-grid2">
           <div className="adm-field">
-            <label>TÃ­tulo</label>
-            <input className="adm-input" placeholder="Ex: Raspa MilionÃ¡rio" value={novo.name} onChange={(e) => setNovo({ ...novo, name: e.target.value })} />
+            <label>Título</label>
+            <input className="adm-input" placeholder="Ex: Raspa Milionário" value={novo.name} onChange={(e) => setNovo({ ...novo, name: e.target.value })} />
           </div>
           <div className="adm-field">
             <label>Imagem</label>
@@ -731,7 +731,7 @@ function RaspadinhasTab() {
             <input className="adm-input" type="number" step="0.01" value={novo.price} onChange={(e) => setNovo({ ...novo, price: Number(e.target.value) })} />
           </div>
           <div className="adm-field">
-            <label>PrÃªmio mÃ¡x. (R$)</label>
+            <label>Prêmio máx. (R$)</label>
             <input className="adm-input" type="number" value={novo.maxPrize} onChange={(e) => setNovo({ ...novo, maxPrize: Number(e.target.value) })} />
           </div>
         </div>
@@ -744,8 +744,8 @@ function RaspadinhasTab() {
             </select>
           </div>
           <div className="adm-field">
-            <label>DescriÃ§Ã£o</label>
-            <input className="adm-input" placeholder="DescriÃ§Ã£o breve" value={novo.description} onChange={(e) => setNovo({ ...novo, description: e.target.value })} />
+            <label>Descrição</label>
+            <input className="adm-input" placeholder="Descrição breve" value={novo.description} onChange={(e) => setNovo({ ...novo, description: e.target.value })} />
           </div>
         </div>
         <div className="adm-actions">
@@ -792,19 +792,19 @@ function PrizesSection({ gameId }: { gameId: string }) {
   return (
     <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: "1rem" }}>
       <button className="adm-btn" style={{ background: "rgba(22,199,91,.1)", color: "#16C75B", border: "1px solid rgba(22,199,91,.2)" }} onClick={() => setOpen(o => !o)}>
-        <i className="bi bi-gift" /> {open ? "Fechar PrÃªmios" : `Gerenciar PrÃªmios (${prizes.length || "?"})`}
+        <i className="bi bi-gift" /> {open ? "Fechar Prêmios" : `Gerenciar Prêmios (${prizes.length || "?"})`}
       </button>
       {open && (
         <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: ".75rem" }}>
-          {/* Novo prÃªmio */}
+          {/* Novo Prêmio */}
           <div style={{ background: "rgba(22,199,91,.05)", border: "1px solid rgba(22,199,91,.12)", borderRadius: 10, padding: ".75rem" }}>
-            <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo PrÃªmio</div>
+            <div style={{ color: "#16C75B", fontWeight: 700, fontSize: ".8rem", marginBottom: ".5rem" }}>+ Novo Prêmio</div>
             <div className="adm-grid2">
-              <div className="adm-field"><label>Nome do prÃªmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
+              <div className="adm-field"><label>Nome do Prêmio</label><input className="adm-input" placeholder="Ex: Honda PCX 2025" value={novo.label} onChange={e => setNovo({ ...novo, label: e.target.value })} /></div>
               <div className="adm-field"><label>Valor (R$)</label><input className="adm-input" type="number" value={novo.value} onChange={e => setNovo({ ...novo, value: Number(e.target.value) })} /></div>
             </div>
             <div className="adm-field" style={{ marginBottom: ".5rem" }}>
-              <label>Foto do prÃªmio</label>
+              <label>Foto do Prêmio</label>
               <input className="adm-input" placeholder="https://... ou envie uma imagem" value={novo.imageUrl} onChange={e => setNovo({ ...novo, imageUrl: e.target.value })} />
               <div style={{ marginTop: ".4rem" }}><UploadBtn onPick={d => setNovo({ ...novo, imageUrl: d })} asPng /></div>
             </div>
@@ -853,12 +853,12 @@ function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: Ga
         <img className="adm-preview" src={g.imageUrl || ""} alt="" />
         <div>
           <div style={{ fontWeight: 800 }}>{g.name}</div>
-          <div className="adm-pagesub">id: {g.id} Â· prÃªmio mÃ¡x. R$ {g.maxPrize.toLocaleString("pt-BR")}</div>
+          <div className="adm-pagesub">id: {g.id} · Prêmio máx. R$ {g.maxPrize.toLocaleString("pt-BR")}</div>
         </div>
       </div>
       <div className="adm-grid2">
         <div className="adm-field">
-          <label>TÃ­tulo</label>
+          <label>Título</label>
           <input className="adm-input" value={g.name} onChange={(e) => setG({ ...g, name: e.target.value })} />
         </div>
         <div className="adm-field">
@@ -875,7 +875,7 @@ function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: Ga
           <input className="adm-input" type="number" step="0.01" value={g.price} onChange={(e) => setG({ ...g, price: Number(e.target.value) })} />
         </div>
         <div className="adm-field">
-          <label>PrÃªmio mÃ¡x. (R$)</label>
+          <label>Prêmio máx. (R$)</label>
           <input className="adm-input" type="number" value={g.maxPrize} onChange={(e) => setG({ ...g, maxPrize: Number(e.target.value) })} />
         </div>
       </div>
@@ -888,7 +888,7 @@ function GameRowEdit({ game, onSave, onDelete }: { game: GameRow; onSave: (g: Ga
           </select>
         </div>
         <div className="adm-field">
-          <label>DescriÃ§Ã£o</label>
+          <label>Descrição</label>
           <textarea className="adm-textarea" value={g.description} onChange={(e) => setG({ ...g, description: e.target.value })} />
         </div>
       </div>
@@ -942,7 +942,7 @@ function GanhadoresTab() {
         <div className="adm-cardtitle">Novo ganhador</div>
         <div className="adm-grid2">
           <div className="adm-field">
-            <label>URL da foto do prÃªmio</label>
+            <label>URL da foto do Prêmio</label>
             <input className="adm-input" placeholder="https://... ou envie abaixo" value={novo.imageUrl} onChange={(e) => setNovo({ ...novo, imageUrl: e.target.value })} />
             <div className="adm-actions" style={{ marginTop: "0.5rem" }}>
               <UploadBtn onPick={(d) => setNovo({ ...novo, imageUrl: d })} removeDarkBg />
@@ -966,7 +966,7 @@ function GanhadoresTab() {
             </select>
           </div>
           <div className="adm-field">
-            <label>HÃ¡ quantos min</label>
+            <label>Há quantos min</label>
             <input className="adm-input" type="number" value={novo.minutesAgo} onChange={(e) => setNovo({ ...novo, minutesAgo: Number(e.target.value) })} />
           </div>
           <div className="adm-field">
@@ -1009,7 +1009,7 @@ function PremiosDistribuidos() {
 
   return (
     <div className="adm-card new">
-      <div className="adm-cardtitle">PrÃªmios DistribuÃ­dos (total exibido na home)</div>
+      <div className="adm-cardtitle">Prêmios Distribuídos (total exibido na home)</div>
       <div className="adm-grid2">
         <div className="adm-field">
           <label>Valor (R$)</label>
@@ -1068,7 +1068,7 @@ function WinnerRow({ winner, onSave, onDelete }: { winner: Winner; onSave: (w: W
           </select>
         </div>
         <div className="adm-field">
-          <label>HÃ¡ min</label>
+          <label>Há min</label>
           <input className="adm-input" type="number" value={w.minutesAgo} onChange={(e) => setW({ ...w, minutesAgo: Number(e.target.value) })} />
         </div>
         <div className="adm-field">

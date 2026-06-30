@@ -6,7 +6,7 @@ import Header from "./Header";
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const path = usePathname() || "";
 
-  // PÃ¡ginas /9bkp tÃªm o prÃ³prio layout, sem header/footer do site
+  // Páginas /9bkp têm o próprio layout, sem header/footer do site
   if (path.startsWith("/9bkp")) {
     return <>{children}</>;
   }
@@ -33,19 +33,19 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
                 }}>
                   <i className="bi bi-dice-3-fill" />
                 </div>
-                <span style={{ fontSize: "1.25rem", fontWeight: 700, color: "#fff" }}>RaspaPrÃªmio</span>
+                <span style={{ fontSize: "1.25rem", fontWeight: 700, color: "#fff" }}>RaspaPrêmio</span>
               </div>
               <p style={{ color: "#6b7280", fontSize: "0.9rem", lineHeight: 1.5, marginBottom: "0.5rem" }}>
-                Â© 2025 RaspaPrÃªmio. Todos os direitos reservados.
+                Â© 2025 RaspaPrêmio. Todos os direitos reservados.
               </p>
               <p style={{ color: "#6b7280", fontSize: "0.9rem", lineHeight: 1.5 }}>
-                Raspadinhas e outros jogos de azar sÃ£o regulamentados e cobertos pela nossa licenÃ§a de jogos. Jogue com responsabilidade.
+                Raspadinhas e outros jogos de azar são regulamentados e cobertos pela nossa licença de jogos. Jogue com responsabilidade.
               </p>
             </div>
             <div>
               <h3 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 600, marginBottom: "1rem", borderBottom: "2px solid #ef4444", paddingBottom: "0.5rem", display: "inline-block" }}>Regulamentos</h3>
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {["Jogo responsÃ¡vel", "PolÃ­tica de Privacidade", "Termos de Uso"].map((item) => (
+                {["Jogo responsável", "Política de Privacidade", "Termos de Uso"].map((item) => (
                   <li key={item} style={{ marginBottom: "0.75rem" }}>
                     <a href="#" style={{ color: "#9ca3af", textDecoration: "none", fontSize: "0.95rem" }}>{item}</a>
                   </li>
@@ -55,7 +55,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             <div>
               <h3 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 600, marginBottom: "1rem", borderBottom: "2px solid #ef4444", paddingBottom: "0.5rem", display: "inline-block" }}>Ajuda</h3>
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {["Perguntas Frequentes", "Como Jogar", "Suporte TÃ©cnico"].map((item) => (
+                {["Perguntas Frequentes", "Como Jogar", "Suporte Técnico"].map((item) => (
                   <li key={item} style={{ marginBottom: "0.75rem" }}>
                     <a href="#" style={{ color: "#9ca3af", textDecoration: "none", fontSize: "0.95rem" }}>{item}</a>
                   </li>
